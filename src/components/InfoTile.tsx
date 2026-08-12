@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { C } from './tokens'
 
 export function InfoTile({
@@ -6,7 +7,7 @@ export function InfoTile({
   value,
   tone = C.primary,
 }: {
-  icon: string
+  icon: ReactNode
   label: string
   value: string
   tone?: string
@@ -20,7 +21,7 @@ export function InfoTile({
         border: `1px solid ${tone}22`,
       }}
     >
-      <div style={{ fontSize: 18, marginBottom: 8 }}>{icon}</div>
+      <div style={{ fontSize: 18, marginBottom: 8, display: 'inline-flex' }}>{icon}</div>
       <div style={{ fontSize: 11.5, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>
         {label}
       </div>
