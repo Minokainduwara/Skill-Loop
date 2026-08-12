@@ -12,16 +12,39 @@ export const current = query({
 export const upsertFromClerk = internalMutation({
   args: { data: v.any() as Validator<UserJSON> }, // no runtime validation, trust Clerk
   async handler(ctx, { data }) {
-    const userAttributes = {
-      username: `${data.first_name} ${data.last_name}`,
-      externalId: data.id,
-    };
+    const now = Date.now();
+
+    const username =
+      [data.first_name, data.last_name]
+        .filter((name): name is string => !!name)
+        .join(" ")
+        .trim() || data.username || "User";
+
+    const primaryEmail = data.email_addresses.find(
+      (email) => email.id === data.primary_email_address_id,
+    );
 
     const user = await userByExternalId(ctx, data.id);
     if (user === null) {
-      await ctx.db.insert("users", userAttributes);
+      await ctx.db.insert("users", {
+        username,
+        externalId: data.id,
+        email: primaryEmail?.email_address,
+        profileImage: data.image_url || undefined,
+        role: "student",
+        isVerified: false,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      });
     } else {
-      await ctx.db.patch("users", user._id, userAttributes);
+      await ctx.db.patch("users", user._id, {
+        username,
+        externalId: data.id,
+        email: primaryEmail?.email_address,
+        profileImage: data.image_url || undefined,
+        updatedAt: now,
+      });
     }
   },
 });

@@ -1,0 +1,38 @@
+.app-container {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #DAE0E6;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  padding-top: 64px;
+  padding-left: 16px;
+  padding-right: 16px;
+  width: 100%;
+  flex: 1;
+}
+
+.content-container {
+  width: 100%;
+  max-width: 1248px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.welcome-message {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.welcome-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1c1c1c;
+}
+
+.welcome-subtitle {
+  color: #4c5054;
+  margin-top: 8px;
+}
