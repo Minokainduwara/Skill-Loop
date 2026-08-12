@@ -10,6 +10,7 @@ import {
   CircleProgress,
   Divider,
   Grid,
+  Icon,
   InfoTile,
   PageHead,
   SectionTitle,
@@ -56,14 +57,14 @@ export default function DemandCluster({ onNavigate }: PageProps) {
         subtitle="SkillLoop grouped 7 scattered community requests into one high-value opportunity near you."
         onBack={() => onNavigate('radar')}
         backLabel="Back to Opportunity Radar"
-        actions={<Badge color="#B91C1C" bg="#FEE2E2" dot>🔥 High demand</Badge>}
+        actions={<Badge color="#B91C1C" bg="#FEE2E2" dot><Icon name="spark" size={12} color="#B91C1C" /> High demand</Badge>}
       />
 
       <Grid min={200} gap={14} style={{ marginBottom: 26 }}>
-        <InfoTile icon="🙋" label="People looking" value="7 requesters" />
-        <InfoTile icon="💰" label="Total request value" value={rupees(total)} tone={C.success} />
-        <InfoTile icon="🎓" label="Skilled students" value="14 available" tone={C.accent} />
-        <InfoTile icon="📍" label="Radius" value="5 km · Peradeniya" tone={C.warning} />
+        <InfoTile icon={<Icon name="people" size={18} color={C.primary} />} label="People looking" value="7 requesters" />
+        <InfoTile icon={<Icon name="coin" size={18} color={C.success} />} label="Total request value" value={rupees(total)} tone={C.success} />
+        <InfoTile icon={<Icon name="graduation" size={18} color={C.accent} />} label="Skilled students" value="14 available" tone={C.accent} />
+        <InfoTile icon={<Icon name="pin" size={18} color={C.warning} />} label="Radius" value="5 km · Kamburupitiya" tone={C.warning} />
       </Grid>
 
       <div
@@ -104,14 +105,14 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                         flexShrink: 0,
                       }}
                     >
-                      🎨
+                      <Icon name="brief" size={18} color={C.primary} />
                     </div>
                     <div style={{ flex: '1 1 180px', minWidth: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>{r.title}</div>
                       <div style={{ fontSize: 12.5, color: C.muted, marginTop: 4 }}>
-                        {r.requester} · 📍 {r.distance}
+                        {r.requester} · <span style={{ display: 'inline-flex', verticalAlign: 'text-bottom' }}><Icon name="pin" size={12} color={C.muted} /></span> {r.distance}
                       </div>
-                      <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>🕒 {r.deadline}</div>
+                      <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}><span style={{ display: 'inline-flex', verticalAlign: 'text-bottom' }}><Icon name="clock" size={12} color={C.faint} /></span> {r.deadline}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div
@@ -226,7 +227,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                       textAlign: 'center',
                     }}
                   >
-                    <div style={{ fontSize: 30, animation: 'sl-pop .4s ease both' }}>✅</div>
+                    <div style={{ fontSize: 30, animation: 'sl-pop .4s ease both' }}><Icon name="check" size={30} color="#15803D" /></div>
                     <div style={{ fontSize: 15, fontWeight: 800, color: '#166534', marginTop: 8 }}>
                       You are in the running
                     </div>
@@ -249,7 +250,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                       {"I'm Interested"}
                     </Btn>
                     <Btn variant="secondary" full onClick={() => onNavigate('messages')}>
-                      💬 Message requesters
+                      <><Icon name="message" size={14} color={C.primary} /> Message requesters</>
                     </Btn>
                   </div>
                 )}
@@ -261,7 +262,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                 CLUSTER SIGNALS
               </div>
               <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
-                <Row label="Demand level" value="🔥 HIGH" />
+                <Row label="Demand level" value="HIGH" />
                 <Row label="Requests in 5 days" value="7" />
                 <Row label="Competition" value="Low · 14 students" />
                 <Row label="Repeat-work chance" value="High" tone={C.success} />

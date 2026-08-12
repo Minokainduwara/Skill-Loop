@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { NavProps, Page } from '../types'
 import { Avatar, Badge, Btn, C, Logo, NOTIFICATIONS, SHADOW, USER } from './ui'
 
-const LINKS: { key: Page; label: string }[] = [
+const STUDENT_LINKS: { key: Page; label: string }[] = [
   { key: 'radar', label: 'Discover' },
   { key: 'opportunities', label: 'Opportunities' },
   { key: 'my-jobs', label: 'My Jobs' },
@@ -11,13 +11,24 @@ const LINKS: { key: Page; label: string }[] = [
   { key: 'portfolio', label: 'Portfolio' },
 ]
 
+const COMMUNITY_LINKS: { key: Page; label: string }[] = [
+  { key: 'community-dashboard', label: 'Home' },
+  { key: 'post-need', label: 'Post a Need' },
+  { key: 'messages', label: 'Messages' },
+  { key: 'economic-impact', label: 'Impact' },
+  { key: 'notifications', label: 'Updates' },
+  { key: 'profile', label: 'Profile' },
+]
+
 const PUBLIC_PAGES: Page[] = ['landing', 'login', 'signup', 'onboarding']
 
-export default function Nav({ onNavigate, currentPage }: NavProps) {
+export default function Nav({ onNavigate, currentPage, currentRole }: NavProps) {
   const [bell, setBell] = useState(false)
   const [menu, setMenu] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)
   const isPublic = PUBLIC_PAGES.includes(currentPage)
+  const isCommunity = currentRole === 'community'
+  const links = isCommunity ? COMMUNITY_LINKS : STUDENT_LINKS
   const unread = NOTIFICATIONS.filter((n) => n.unread).length
 
   useEffect(() => {
@@ -59,7 +70,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
           gap: 20,
         }}
       >
-        <div style={{ cursor: 'pointer' }} onClick={() => go(isPublic ? 'landing' : 'dashboard')}>
+        <div style={{ cursor: 'pointer' }} onClick={() => go(isPublic ? 'landing' : isCommunity ? 'community-dashboard' : 'dashboard')}>
           <Logo />
         </div>
 
@@ -68,7 +79,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
             className="scrollbar-hide"
             style={{ display: 'flex', gap: 2, marginLeft: 12, overflowX: 'auto', flex: 1 }}
           >
-            {LINKS.map((l) => {
+            {links.map((l) => {
               const on = currentPage === l.key
               return (
                 <button
@@ -115,9 +126,15 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
             </>
           ) : (
             <>
-              <Btn variant="secondary" size="sm" onClick={() => go('admin-dashboard')} style={{ display: 'inline-flex' }}>
-                ⚙ Admin
-              </Btn>
+              {isCommunity ? (
+                <Btn variant="secondary" size="sm" onClick={() => go('economic-impact')} style={{ display: 'inline-flex' }}>
+                  Impact
+                </Btn>
+              ) : (
+                <Btn variant="secondary" size="sm" onClick={() => go('admin-dashboard')} style={{ display: 'inline-flex' }}>
+                  ⚙ Admin
+                </Btn>
+              )}
               <Btn size="sm" onClick={() => go('post-need')} style={{ display: 'inline-flex' }}>
                 + Post a Need
               </Btn>

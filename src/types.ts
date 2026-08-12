@@ -4,6 +4,7 @@ export type Page =
   | 'signup'
   | 'onboarding'
   | 'dashboard'
+  | 'community-dashboard'
   | 'radar'
   | 'demand-cluster'
   | 'opportunities'
@@ -29,6 +30,8 @@ export type Page =
 
 export type Navigate = (page: Page) => void
 
+export type UserRole = 'student' | 'community'
+
 export interface PageProps {
   onNavigate: Navigate
 }
@@ -36,4 +39,5 @@ export interface PageProps {
 export interface NavProps {
   onNavigate: Navigate
   currentPage: Page
+  currentRole: UserRole
 }

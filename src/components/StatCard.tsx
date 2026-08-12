@@ -10,7 +10,7 @@ export function StatCard({
   tone = C.primary,
   onClick,
 }: {
-  icon: string
+  icon: ReactNode
   label: string
   value: string | number
   delta?: string

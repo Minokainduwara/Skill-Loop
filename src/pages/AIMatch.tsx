@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { PageProps } from '../types'
 import {
@@ -18,6 +19,7 @@ import {
   SectionTitle,
   Stars,
   Verified,
+  Icon,
   rupees,
 } from '../components/ui'
 
@@ -99,17 +101,17 @@ const CANDIDATES: Candidate[] = [
   },
 ]
 
-const MEDALS: Record<number, { emoji: string; bg: string; color: string }> = {
-  1: { emoji: '🥇', bg: '#FEF3C7', color: '#B45309' },
-  2: { emoji: '🥈', bg: '#F1F5F9', color: '#475569' },
-  3: { emoji: '🥉', bg: '#FFEDD5', color: '#C2410C' },
+const MEDALS: Record<number, { emoji: ReactNode; bg: string; color: string }> = {
+  1: { emoji: '1', bg: '#FEF3C7', color: '#B45309' },
+  2: { emoji: '2', bg: '#F1F5F9', color: '#475569' },
+  3: { emoji: '3', bg: '#FFEDD5', color: '#C2410C' },
 }
 
 const FACTORS = [
-  { icon: '🎯', label: 'Skill match', weight: '40%', text: 'Verified skills compared against the skills extracted from the request.' },
-  { icon: '🗓️', label: 'Availability', weight: '25%', text: 'Free hours declared this week measured against the deadline.' },
-  { icon: '🧰', label: 'Experience', weight: '20%', text: 'Completed jobs in the same category plus portfolio depth.' },
-  { icon: '⭐', label: 'Rating & trust', weight: '15%', text: 'Average review score, on-time delivery and verification status.' },
+  { icon: <Icon name="target" size={16} color={C.primary} />, label: 'Skill match', weight: '40%', text: 'Verified skills compared against the skills extracted from the request.' },
+  { icon: <Icon name="calendar" size={16} color={C.primary} />, label: 'Availability', weight: '25%', text: 'Free hours declared this week measured against the deadline.' },
+  { icon: <Icon name="brief" size={16} color={C.primary} />, label: 'Experience', weight: '20%', text: 'Completed jobs in the same category plus portfolio depth.' },
+  { icon: <Icon name="star" size={16} color={C.primary} />, label: 'Rating & trust', weight: '15%', text: 'Average review score, on-time delivery and verification status.' },
 ]
 
 export default function AIMatch({ onNavigate }: PageProps) {
@@ -130,7 +132,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
         {/* ----------------------------------------------- request context */}
         <Card style={{ marginBottom: 22, animation: 'sl-rise .5s both' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <Avatar name="University Robotics Society" size={48} emoji="🤖" />
+            <Avatar name="University Robotics Society" size={48} emoji={<Icon name="brain" size={26} color={C.primary} />} />
             <div style={{ flex: 1, minWidth: 240 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: C.faint, letterSpacing: 0.8 }}>THE REQUEST</div>
               <blockquote
@@ -181,9 +183,9 @@ export default function AIMatch({ onNavigate }: PageProps) {
               </div>
             </div>
             <Grid min={165} gap={12}>
-              <InfoTile icon="💰" label="Budget" value={rupees(2000)} />
-              <InfoTile icon="⏳" label="Deadline" value="3 days" tone={C.warning} />
-              <InfoTile icon="📍" label="Radius" value="Within 5 km" tone={C.accent} />
+              <InfoTile icon={<Icon name="coin" size={18} color={C.primary} />} label="Budget" value={rupees(2000)} />
+              <InfoTile icon={<Icon name="clock" size={18} color={C.warning} />} label="Deadline" value="3 days" tone={C.warning} />
+              <InfoTile icon={<Icon name="pin" size={18} color={C.accent} />} label="Radius" value="Within 5 km" tone={C.accent} />
             </Grid>
           </div>
 
@@ -340,7 +342,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
                         }}
                       >
                         <div style={{ fontSize: 14, fontWeight: 800, color: '#15803D' }}>
-                          ✅ {c.name} has been invited and assigned
+                          <Icon name="check" size={16} color="#15803D" /> {c.name} has been invited and assigned
                         </div>
                         <p style={{ margin: '6px 0 14px', fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
                           Rs. 2,000 moved into escrow. A shared workspace has been created for the poster brief.

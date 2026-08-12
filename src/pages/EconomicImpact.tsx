@@ -33,6 +33,7 @@ import {
   SectionTitle,
   Shell,
   SkillChip,
+  Icon,
   rupees,
 } from '../components/ui'
 
@@ -172,7 +173,7 @@ export default function EconomicImpact({ onNavigate }: PageProps) {
         <PageHead
           eyebrow="Analytics"
           title="Economic Impact"
-          subtitle="SkillLoop turns unused student skills into measurable local economic value around Peradeniya, Kandy and Colombo."
+          subtitle="SkillLoop turns unused student skills into measurable local economic value around Matara District."
           actions={
             <>
               <Btn variant="secondary" onClick={() => onNavigate('earnings')}>
@@ -210,7 +211,7 @@ export default function EconomicImpact({ onNavigate }: PageProps) {
           />
           <div style={{ position: 'relative' }}>
             <Badge color="#5EEAD4" bg="rgba(94,234,212,0.14)">
-              {scope === 'mine' ? 'My impact' : 'Community impact · Kandy district'}
+              {scope === 'mine' ? 'My impact' : 'Community impact · Matara district'}
             </Badge>
             <div style={{ fontSize: 62, fontWeight: 800, letterSpacing: -2.8, lineHeight: 1.02, marginTop: 16 }}>
               {rupees(summary.headline)}
@@ -457,11 +458,11 @@ export default function EconomicImpact({ onNavigate }: PageProps) {
         {/* ----------------------------------------------- personal impact */}
         <SectionTitle title="Your personal impact" subtitle="Kasun Perera · Peradeniya, Kandy" />
         <Grid min={200} gap={16} style={{ marginBottom: 30 }}>
-          <InfoTile icon="💰" label="Student income" value={rupees(24500)} tone={C.primary} />
-          <InfoTile icon="🪙" label="Requester money saved" value={rupees(9200)} tone={C.accent} />
-          <InfoTile icon="✅" label="Jobs completed" value="18" tone="#7C3AED" />
-          <InfoTile icon="🤝" label="People helped" value="15" tone={C.warning} />
-          <InfoTile icon="⏱️" label="Hours of work" value="42" tone="#0EA5E9" />
+          <InfoTile icon={<Icon name="coin" size={18} color={C.primary} />} label="Student income" value={rupees(24500)} tone={C.primary} />
+          <InfoTile icon={<Icon name="tag" size={18} color={C.accent} />} label="Requester money saved" value={rupees(9200)} tone={C.accent} />
+          <InfoTile icon={<Icon name="check" size={18} color="#7C3AED" />} label="Jobs completed" value="18" tone="#7C3AED" />
+          <InfoTile icon={<Icon name="people" size={18} color={C.warning} />} label="People helped" value="15" tone={C.warning} />
+          <InfoTile icon={<Icon name="clock" size={18} color="#0EA5E9" />} label="Hours of work" value="42" tone="#0EA5E9" />
         </Grid>
 
         <AICallout

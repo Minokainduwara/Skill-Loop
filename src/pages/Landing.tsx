@@ -9,6 +9,7 @@ import {
   Card,
   Grid,
   HERO_GRADIENT,
+  Icon,
   Logo,
   MatchBadge,
   SHADOW,
@@ -17,11 +18,11 @@ import {
 } from '../components/ui'
 
 const FLOW = [
-  { label: 'LOCAL NEED', icon: '📍', tone: '#F59E0B' },
-  { label: 'AI DISCOVERY', icon: '🤖', tone: '#7C3AED' },
-  { label: 'BEST MATCH', icon: '🎯', tone: '#4F46E5' },
-  { label: 'STUDENT', icon: '🎓', tone: '#14B8A6' },
-  { label: 'INCOME', icon: '💰', tone: '#16A34A' },
+  { label: 'LOCAL NEED', icon: <Icon name="pin" size={16} color="#F59E0B" />, tone: '#F59E0B' },
+  { label: 'AI DISCOVERY', icon: <Icon name="brain" size={16} color="#7C3AED" />, tone: '#7C3AED' },
+  { label: 'BEST MATCH', icon: <Icon name="target" size={16} color="#4F46E5" />, tone: '#4F46E5' },
+  { label: 'STUDENT', icon: <Icon name="graduation" size={16} color="#14B8A6" />, tone: '#14B8A6' },
+  { label: 'INCOME', icon: <Icon name="coin" size={16} color="#16A34A" />, tone: '#16A34A' },
 ]
 
 const FLOAT_CARDS = [
@@ -31,10 +32,10 @@ const FLOAT_CARDS = [
 ]
 
 const STEPS = [
-  { n: '01', t: 'Discover', d: 'Find real needs around you, surfaced from live local demand.', icon: '🛰️' },
-  { n: '02', t: 'Match', d: 'AI finds the best student for each opportunity — instantly.', icon: '🧠' },
-  { n: '03', t: 'Earn', d: 'Complete the work, get paid securely in rupees.', icon: '💸' },
-  { n: '04', t: 'Grow', d: 'Build ratings, experience, portfolio and new skills.', icon: '📈' },
+  { n: '01', t: 'Discover', d: 'Find real needs around you, surfaced from live local demand.', icon: <Icon name="radar" size={28} color={C.primary} /> },
+  { n: '02', t: 'Match', d: 'AI finds the best student for each opportunity — instantly.', icon: <Icon name="brain" size={28} color={C.primary} /> },
+  { n: '03', t: 'Earn', d: 'Complete the work, get paid securely in rupees.', icon: <Icon name="coin" size={28} color={C.primary} /> },
+  { n: '04', t: 'Grow', d: 'Build ratings, experience, portfolio and new skills.', icon: <Icon name="trend" size={28} color={C.primary} /> },
 ]
 
 const GROWTH = [
@@ -71,11 +72,11 @@ const TESTIMONIALS = [
 ]
 
 const IMPACT = [
-  { value: rupees(156500), label: 'Student income generated', icon: '💰' },
-  { value: '84', label: 'Jobs completed', icon: '✅' },
-  { value: '47', label: 'Students benefited', icon: '🎓' },
-  { value: rupees(72000), label: 'Requester savings', icon: '🏷️' },
-  { value: '92%', label: 'Average match accuracy', icon: '🎯' },
+  { value: rupees(156500), label: 'Student income generated', icon: <Icon name="coin" size={18} color="#fff" /> },
+  { value: '84', label: 'Jobs completed', icon: <Icon name="check" size={18} color="#fff" /> },
+  { value: '47', label: 'Students benefited', icon: <Icon name="graduation" size={18} color="#fff" /> },
+  { value: rupees(72000), label: 'Requester savings', icon: <Icon name="tag" size={18} color="#fff" /> },
+  { value: '92%', label: 'Average match accuracy', icon: <Icon name="target" size={18} color="#fff" /> },
 ]
 
 function FlowNode({ item, last }: { item: (typeof FLOW)[number]; last?: boolean }) {
@@ -170,7 +171,7 @@ export default function Landing({ onNavigate }: PageProps) {
         >
           <div className="sl-rise">
             <Badge color="#5EEAD4" bg="rgba(94,234,212,0.14)" dot style={{ marginBottom: 22 }}>
-              AI-powered local opportunity discovery
+              AI-powered MicroEconomy opportunity discovery
             </Badge>
             <h1
               style={{
@@ -328,7 +329,7 @@ export default function Landing({ onNavigate }: PageProps) {
         </div>
         <Grid min={300} gap={20} style={{ alignItems: 'stretch' }}>
           <Card pad={28} hover>
-            <div style={{ fontSize: 26, marginBottom: 14 }}>🎓</div>
+            <div style={{ width: 34, height: 34, marginBottom: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: C.primary }}><Icon name="graduation" size={34} color={C.primary} /></div>
             <h3 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: C.text }}>Students</h3>
             <ul style={{ margin: '14px 0 0', padding: 0, listStyle: 'none' }}>
               {['Have skills', 'Need income', 'Lack customers', 'Need experience'].map((l) => (
@@ -358,7 +359,7 @@ export default function Landing({ onNavigate }: PageProps) {
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: 32, marginBottom: 12 }}>⟳</div>
+            <div style={{ width: 34, height: 34, marginBottom: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="spark" size={34} color="#fff" /></div>
             <h3 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#fff', letterSpacing: -0.6 }}>
               SkillLoop
             </h3>
@@ -381,7 +382,7 @@ export default function Landing({ onNavigate }: PageProps) {
             </div>
           </Card>
           <Card pad={28} hover>
-            <div style={{ fontSize: 26, marginBottom: 14 }}>🏘️</div>
+            <div style={{ width: 34, height: 34, marginBottom: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: C.primary }}><Icon name="people" size={34} color={C.primary} /></div>
             <h3 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: C.text }}>Community</h3>
             <ul style={{ margin: '14px 0 0', padding: 0, listStyle: 'none' }}>
               {[
@@ -797,7 +798,7 @@ export default function Landing({ onNavigate }: PageProps) {
           <div>
             <Logo size={18} />
             <p style={{ margin: '10px 0 0', fontSize: 12.5, color: C.faint }}>
-              Peradeniya · Kandy · Colombo · Galle
+              FOT Ruhuna
             </p>
           </div>
           <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
