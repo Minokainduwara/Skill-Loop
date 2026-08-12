@@ -105,7 +105,7 @@ export default function AdminUsers({ onNavigate }: PageProps) {
                 </tr>
               </thead>
               <tbody>
-                {filteredStudents.map((s, i) => (
+                {filteredStudents.map((s) => (
                   <tr key={s.name} style={{ borderTop: `1px solid ${C.border}`, transition: 'background 0.1s' }}
                     onMouseEnter={e => (e.currentTarget.style.background = C.subtle)}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -153,7 +153,7 @@ export default function AdminUsers({ onNavigate }: PageProps) {
                 </tr>
               </thead>
               <tbody>
-                {filteredRequesters.map((r, i) => (
+                {filteredRequesters.map((r) => (
                   <tr key={r.name} style={{ borderTop: `1px solid ${C.border}` }}
                     onMouseEnter={e => (e.currentTarget.style.background = C.subtle)}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}

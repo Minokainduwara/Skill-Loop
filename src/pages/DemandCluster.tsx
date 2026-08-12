@@ -163,7 +163,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                   />
                   <YAxis tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    formatter={(v) => rupees(Number(v))}
+                    formatter={(v: unknown) => rupees(Number(v))}
                     contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }}
                   />
                   <Bar dataKey="value" radius={[7, 7, 0, 0]}>

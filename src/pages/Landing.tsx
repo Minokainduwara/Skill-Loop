@@ -677,7 +677,7 @@ export default function Landing({ onNavigate }: PageProps) {
                       color: '#fff',
                     }}
                     labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
-                    formatter={(v) => [rupees(Number(v)), 'Income']}
+                    formatter={(v: unknown) => [rupees(Number(v)), 'Income']}
                   />
                   <Area
                     type="monotone"

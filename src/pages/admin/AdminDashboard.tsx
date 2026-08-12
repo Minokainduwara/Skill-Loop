@@ -4,7 +4,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -132,8 +131,8 @@ export default function AdminDashboard({ onNavigate }: PageProps) {
                 </defs>
                 <CartesianGrid stroke={C.subtle} vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip formatter={(v: any) => rupees(Number(v))} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} tickFormatter={(v: unknown) => `${Number(v) / 1000}k`} />
+                <Tooltip formatter={(v: unknown) => rupees(Number(v))} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
                 <Area type="monotone" dataKey="value" stroke={C.accent} strokeWidth={2.5} fill="url(#volGrad)" name="Volume" />
               </AreaChart>
             </ResponsiveContainer>

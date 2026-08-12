@@ -13,7 +13,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { PageProps } from '../../types'
-import { AICallout, Btn, C, Card, Grid, KPI, rupees, SectionTitle } from '../../components/ui'
+import { AICallout, Btn, C, Card, Grid, rupees, SectionTitle } from '../../components/ui'
 
 const GROWTH = [
   { month: 'Mar', students: 820, jobs: 38, volume: 42000 },
@@ -87,7 +87,7 @@ export default function AdminAnalytics({ onNavigate }: PageProps) {
               <CartesianGrid stroke={C.subtle} vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} />
               <YAxis yAxisId="left" tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} tickFormatter={(v: unknown) => `${Number(v) / 1000}k`} />
               <Tooltip contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
               <Area yAxisId="left" type="monotone" dataKey="students" stroke={C.primary} strokeWidth={2.5} fill="url(#studGrad)" name="Students" />
               <Area yAxisId="right" type="monotone" dataKey="volume" stroke={C.success} strokeWidth={2} fill="url(#volGrad2)" name="Volume (Rs)" />

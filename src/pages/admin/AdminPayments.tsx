@@ -46,7 +46,7 @@ function TxnBadge({ status }: { status: string }) {
   )
 }
 
-export default function AdminPayments({ onNavigate }: PageProps) {
+export default function AdminPayments({ onNavigate: _onNavigate }: PageProps) {
   const [filter, setFilter] = useState('All')
 
   const totalReleased = TRANSACTIONS.filter(t => t.status === 'Released').reduce((s, t) => s + t.amount, 0)
@@ -108,8 +108,8 @@ export default function AdminPayments({ onNavigate }: PageProps) {
               </defs>
               <CartesianGrid stroke={C.subtle} vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-              <Tooltip formatter={(v: any) => rupees(Number(v))} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} tickFormatter={(v: unknown) => `${Number(v) / 1000}k`} />
+              <Tooltip formatter={(v: unknown) => rupees(Number(v))} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
               <Area type="monotone" dataKey="released" stroke={C.success} strokeWidth={2} fill="url(#relGrad)" name="Released" />
               <Area type="monotone" dataKey="escrowed" stroke="#1D4ED8" strokeWidth={2} fill="url(#escGrad)" name="Escrowed" />
             </AreaChart>

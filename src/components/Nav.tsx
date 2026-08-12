@@ -27,6 +27,7 @@ export default function Nav({ onNavigate, currentPage, currentRole }: NavProps) 
   const [menu, setMenu] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)
   const isPublic = PUBLIC_PAGES.includes(currentPage)
+  const authed = !isPublic
   const isCommunity = currentRole === 'community'
   const links = isCommunity ? COMMUNITY_LINKS : STUDENT_LINKS
   const unread = NOTIFICATIONS.filter((n) => n.unread).length

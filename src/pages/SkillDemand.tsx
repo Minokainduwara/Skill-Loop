@@ -24,6 +24,7 @@ import {
   Divider,
   EmptyState,
   Grid,
+  Icon,
   PageHead,
   SHADOW,
   SectionTitle,

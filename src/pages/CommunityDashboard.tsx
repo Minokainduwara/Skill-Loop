@@ -17,7 +17,6 @@ import {
   SectionTitle,
   Shell,
   StatusBadge,
-  Verified,
   rupees,
 } from '../components/ui'
 

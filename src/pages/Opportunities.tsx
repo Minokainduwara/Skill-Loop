@@ -16,7 +16,6 @@ import {
   Icon,
   rupees,
 } from '../components/ui'
-import type { ReactNode } from 'react'
 
 type JobType = 'Quick Task' | 'Medium Task' | 'Project'
 
@@ -54,10 +53,10 @@ const OPPORTUNITIES: Opportunity[] = [
   },
   {
     id: 'o2',
-function Meta({ icon, value }: { icon: ReactNode; value: string }) {
+    title: 'Python Tutoring for A/L Student',
     client: 'Nimali Jayasuriya',
     category: 'Tutoring',
-      <span style={{ fontSize: 13, display: 'inline-flex' }}>{icon}</span>
+    type: 'Medium Task',
     budget: 4500,
     deadline: 'August 22',
     daysLeft: 10,

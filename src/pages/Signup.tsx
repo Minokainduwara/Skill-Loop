@@ -151,7 +151,7 @@ export default function Signup({ onNavigate }: PageProps) {
               [<Icon name="star" size={17} color="#fff" />, 'Every job builds your public portfolio'],
             ].map(([icon, text], i) => (
               <div
-                key={text}
+                key={i}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

@@ -316,7 +316,7 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
                       flexShrink: 0,
                     }}
                   >
-                    {c.emoji}
+                    {c.icon}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
