@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useClerk, useUser } from '@clerk/clerk-react'
 import type { NavProps, Page } from '../types'
 import { Avatar, Badge, Btn, C, Logo, NOTIFICATIONS, SHADOW, USER } from './ui'
 
@@ -17,8 +18,11 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
   const [bell, setBell] = useState(false)
   const [menu, setMenu] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)
+  const clerk = useClerk()
+  const { user } = useUser()
   const isPublic = PUBLIC_PAGES.includes(currentPage)
   const unread = NOTIFICATIONS.filter((n) => n.unread).length
+  const displayName = user?.firstName || user?.username || USER.name
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -106,7 +110,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
         >
           {isPublic ? (
             <>
-              <Btn variant="ghost" size="sm" onClick={() => go('login')}>
+              <Btn variant="ghost" size="sm" onClick={() => clerk.openSignIn()}>
                 Sign in
               </Btn>
               <Btn size="sm" onClick={() => go('signup')}>
@@ -271,8 +275,8 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
                     fontFamily: 'inherit',
                   }}
                 >
-                  <Avatar name={USER.name} size={30} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Kasun</span>
+                  <Avatar name={displayName} size={30} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{displayName}</span>
                   <span style={{ fontSize: 9, color: C.faint }}>▼</span>
                 </button>
 
@@ -292,7 +296,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
                     }}
                   >
                     <div style={{ padding: 16, borderBottom: `1px solid ${C.border}` }}>
-                      <div style={{ fontSize: 14, fontWeight: 800 }}>{USER.name}</div>
+                      <div style={{ fontSize: 14, fontWeight: 800 }}>{displayName}</div>
                       <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2 }}>
                         Trust Score {USER.trust}/100 · {USER.rating} ★
                       </div>
@@ -328,7 +332,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
                       </button>
                     ))}
                     <button
-                      onClick={() => go('landing')}
+                      onClick={() => clerk.signOut().then(() => go('landing'))}
                       style={{
                         display: 'block',
                         width: '100%',
