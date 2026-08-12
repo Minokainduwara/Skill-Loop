@@ -51,9 +51,9 @@ const KEYWORD_MAP: { keys: string[]; skills: string[] }[] = [
 const STEPS = ['Understanding request', 'Finding skills', 'Checking availability', 'Ranking candidates']
 
 const TOP_MATCHES = [
-  { name: 'Kasun Perera', match: 96, meta: 'ICT · Peradeniya · 18 jobs' },
-  { name: 'Nimal Silva', match: 89, meta: 'Fine Arts · Kelaniya · 12 jobs' },
-  { name: 'Sahan Fernando', match: 84, meta: 'Media Studies · Colombo · 9 jobs' },
+  { name: 'Lahiru methsara', match: 96, meta: 'ICT · Ruhuna · 18 jobs' },
+  { name: 'Avishka Ishan', match: 89, meta: 'BST · Ruhuna · 12 jobs' },
+  { name: 'Sithum Nimsara', match: 84, meta: 'ET Studies · Ruhuna · 9 jobs' },
 ]
 
 const TIPS = [
@@ -70,7 +70,7 @@ export default function PostNeed({ onNavigate }: PageProps) {
   const [category, setCategory] = useState(CATEGORIES[0])
   const [budget, setBudget] = useState('')
   const [deadline, setDeadline] = useState('')
-  const [location, setLocation] = useState('Peradeniya, Kandy')
+  const [location, setLocation] = useState('kaburupitiya town')
   const [urgency, setUrgency] = useState(URGENCIES[1])
   const [removed, setRemoved] = useState<string[]>([])
   const [custom, setCustom] = useState<string[]>([])
@@ -189,7 +189,7 @@ export default function PostNeed({ onNavigate }: PageProps) {
                       <Input
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
-                        placeholder="Peradeniya, Kandy"
+                        placeholder="Kaburupitiya town"
                       />
                     </Field>
                   </Grid>

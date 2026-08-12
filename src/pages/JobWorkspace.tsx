@@ -501,7 +501,7 @@ export default function JobWorkspace({ onNavigate }: PageProps) {
                 ['Deliverable', 'A3 print poster + social crop'],
                 ['Budget', rupees(2000)],
                 ['Deadline', '14 Aug 2026, 6:00 PM'],
-                ['Location', 'Peradeniya, Kandy'],
+                ['Location', 'Mathara, kaburupitiya'],
                 ['Escrow', 'Funded · released on approval'],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>

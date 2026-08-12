@@ -310,7 +310,7 @@ export default function Completion({ onNavigate }: PageProps) {
               </div>
               <p style={{ margin: '6px 0 0', fontSize: 12.5, color: '#4338CA', lineHeight: 1.6 }}>
                 This job kept {rupees(2000)} inside the Peradeniya student economy and saved the
-                society roughly {rupees(6000)} versus a Colombo agency.
+                society roughly {rupees(6000)} versus  agency.
               </p>
             </div>
           </Card>

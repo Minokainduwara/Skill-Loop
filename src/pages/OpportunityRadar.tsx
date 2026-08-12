@@ -33,12 +33,12 @@ interface Cluster {
 }
 
 const CLUSTERS: Cluster[] = [
-  { key: 'design', name: 'Graphic Design', emoji: '🎨', requests: 12, value: 18500, students: 8, level: 'HIGH', x: 36, y: 32, area: 'Peradeniya campus' },
-  { key: 'video', name: 'Video Editing', emoji: '🎬', requests: 8, value: 11200, students: 6, level: 'MEDIUM', x: 63, y: 26, area: 'Kandy town' },
-  { key: 'web', name: 'Web Development', emoji: '💻', requests: 6, value: 14800, students: 5, level: 'MEDIUM', x: 71, y: 60, area: 'Colombo Road' },
-  { key: 'tutor', name: 'Tutoring', emoji: '📚', requests: 5, value: 9000, students: 11, level: 'LOW', x: 46, y: 70, area: 'Gatambe' },
-  { key: 'photo', name: 'Photography', emoji: '📷', requests: 4, value: 7600, students: 4, level: 'LOW', x: 24, y: 58, area: 'Kandy Lake' },
-  { key: 'social', name: 'Social Media', emoji: '📱', requests: 3, value: 5400, students: 7, level: 'LOW', x: 55, y: 46, area: 'Peradeniya' },
+  { key: 'design', name: 'Graphic Design', emoji: '🎨', requests: 12, value: 18500, students: 8, level: 'HIGH', x: 36, y: 32, area: 'Ruhuna campus' },
+  { key: 'video', name: 'Video Editing', emoji: '🎬', requests: 8, value: 11200, students: 6, level: 'MEDIUM', x: 63, y: 26, area: 'kaburupitiya town' },
+  { key: 'web', name: 'Web Development', emoji: '💻', requests: 6, value: 14800, students: 5, level: 'MEDIUM', x: 71, y: 60, area: 'akurassa Road' },
+  { key: 'tutor', name: 'Tutoring', emoji: '📚', requests: 5, value: 9000, students: 11, level: 'LOW', x: 46, y: 70, area: 'malimbada' },
+  { key: 'photo', name: 'Photography', emoji: '📷', requests: 4, value: 7600, students: 4, level: 'LOW', x: 24, y: 58, area: 'Gamudawa' },
+  { key: 'social', name: 'Social Media', emoji: '📱', requests: 3, value: 5400, students: 7, level: 'LOW', x: 55, y: 46, area: 'Clock-tower' },
 ]
 
 const LEVEL_TONE: Record<Level, { color: string; bg: string; blip: string }> = {
@@ -48,11 +48,11 @@ const LEVEL_TONE: Record<Level, { color: string; bg: string; blip: string }> = {
 }
 
 const REQUESTS = [
-  { text: 'I need someone to design an event flyer for our robotics exhibition.', time: '12 min ago', area: 'Peradeniya', hint: 'Rs. 2,000' },
-  { text: 'Looking for an affordable social media poster set for my small bakery.', time: '48 min ago', area: 'Kandy', hint: 'Rs. 1,200' },
-  { text: 'Need a birthday invitation designed by this weekend, something playful.', time: '2 hours ago', area: 'Gatambe', hint: 'Rs. 800' },
-  { text: 'Can anyone redesign our restaurant menu? Print ready please.', time: '5 hours ago', area: 'Kandy town', hint: 'Rs. 1,500' },
-  { text: 'Want a clean CV design for a job application next week.', time: 'Yesterday', area: 'Peradeniya', hint: 'Rs. 1,000' },
+  { text: 'I need someone to design an event flyer for our robotics exhibition.', time: '12 min ago', area: 'Akurassa', hint: 'Rs. 2,000' },
+  { text: 'Looking for an affordable social media poster set for my small bakery.', time: '48 min ago', area: 'thihagoda', hint: 'Rs. 1,200' },
+  { text: 'Need a birthday invitation designed by this weekend, something playful.', time: '2 hours ago', area: 'mathara', hint: 'Rs. 800' },
+  { text: 'Can anyone redesign our restaurant menu? Print ready please.', time: '5 hours ago', area: 'kaburupitiya', hint: 'Rs. 1,500' },
+  { text: 'Want a clean CV design for a job application next week.', time: 'Yesterday', area: 'Campus', hint: 'Rs. 1,000' },
   { text: 'Our club needs t-shirt artwork for 60 members before the trip.', time: 'Yesterday', area: 'Campus', hint: 'Rs. 2,500' },
 ]
 
@@ -118,7 +118,7 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
                 Scanning live
               </Badge>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 10 }}>
-                5 km radius · Peradeniya
+                5 km radius · Kaburupitiya
               </div>
             </div>
             <div style={{ display: 'flex', gap: 26 }}>
