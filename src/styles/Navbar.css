@@ -1,0 +1,117 @@
+.navbar {
+  background-color: white;
+  height: 49px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  border-bottom: 1px solid #edeff1;
+  z-index: 100;
+}
+
+.navbar-content {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin: 0 auto;
+  gap: 8px;
+  width: 100%;
+  max-width: 1248px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  min-width: fit-content;
+}
+
+.logo-container:hover {
+  background-color: rgba(26,26,27,0.1);
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+}
+
+.logo-link:hover {
+  opacity: 0.8;
+}
+
+.reddit-icon {
+  width: 32px;
+  height: 32px;
+  color: #FF4500;
+}
+
+.site-name {
+  font-size: 1.375rem;
+  font-weight: 500;
+  color: #1c1c1c;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .site-name {
+    display: none;
+  }
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: fit-content;
+}
+
+.dropdown-container {
+  position: relative;
+}
+
+.icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background-color: rgba(26,26,27,0.1);
+}
+
+.icon-button svg {
+  width: 20px;
+  height: 20px;
+  color: #1c1c1c;
+}
+
+.sign-in-button {
+  height: 32px;
+  min-width: 80px;
+  padding: 4px 16px;
+  background-color: #FF4500;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sign-in-button:hover {
+  background-color: #FF5722;
+}
