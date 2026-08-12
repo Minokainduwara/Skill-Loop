@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import type { Page, PageProps } from '../types'
 import {
   Badge,
@@ -172,9 +175,33 @@ const PREFS: Pref[] = [
 ]
 
 export default function Notifications({ onNavigate }: PageProps) {
-  const [notes, setNotes] = useState<Note[]>(BASE)
+  const notifications = useQuery(api.notifications.listMine, {})
+  const markReadMutation = useMutation(api.notifications.markRead)
+  const markAllReadMutation = useMutation(api.notifications.markAllRead)
   const [tab, setTab] = useState('all')
   const [prefs, setPrefs] = useState<Pref[]>(PREFS)
+  const notes = useMemo<Note[]>(() => notifications === undefined ? BASE : notifications.map((notification) => {
+    const age = Date.now() - notification.createdAt
+    const bucket: Bucket = age < 86_400_000 ? 'Today' : age < 172_800_000 ? 'Yesterday' : 'Earlier'
+    const category: Category = notification.type === 'payment' ? 'payments' : notification.type === 'review' ? 'social' : 'opportunities'
+    const action: Note['action'] = notification.relatedJobId
+      ? { label: 'Open job', page: 'job-workspace' }
+      : notification.relatedJobRequestId
+        ? { label: 'View opportunity', page: 'opportunity-detail' }
+        : { label: 'View updates', page: 'dashboard' }
+    return {
+      id: notification._id,
+      icon: notification.type === 'payment' ? '💰' : notification.type === 'review' ? '⭐' : notification.type === 'job_completed' ? '🎉' : '🔔',
+      title: notification.title,
+      body: notification.message,
+      time: new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(-Math.max(1, Math.round(age / 3_600_000)), 'hour'),
+      tone: notification.isRead ? C.subtle : '#EEF2FF',
+      unread: !notification.isRead,
+      category,
+      bucket,
+      action,
+    }
+  }), [notifications])
 
   const unreadCount = notes.filter((n) => n.unread).length
 
@@ -185,10 +212,12 @@ export default function Notifications({ onNavigate }: PageProps) {
     return notes
   }, [notes, tab])
 
-  const markRead = (id: string) =>
-    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, unread: false } : n)))
+  const markRead = (id: string) => {
+    const note = notes.find((item) => item.id === id)
+    if (note?.unread) void markReadMutation({ notificationId: id as Id<'notifications'> })
+  }
 
-  const markAll = () => setNotes((prev) => prev.map((n) => ({ ...n, unread: false })))
+  const markAll = () => void markAllReadMutation({})
 
   const togglePref = (key: string) =>
     setPrefs((prev) => prev.map((p) => (p.key === key ? { ...p, on: !p.on } : p)))

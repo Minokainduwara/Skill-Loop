@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import type { PageProps } from '../types'
 import {
   Avatar,
@@ -185,6 +188,10 @@ export default function Portfolio({ onNavigate }: PageProps) {
     skills: '',
     description: '',
   })
+  const taxonomy = useQuery(api.skills.list, {})
+  const createPortfolio = useMutation(api.portfolios.create)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   const visible = useMemo(
     () => (filter === 'All' ? PROJECTS : PROJECTS.filter((p) => p.category === filter)),
@@ -194,10 +201,29 @@ export default function Portfolio({ onNavigate }: PageProps) {
   const totalEarned = PROJECTS.reduce((a, p) => a + p.earned, 0)
   const avgRating = PROJECTS.reduce((a, p) => a + p.rating, 0) / PROJECTS.length
 
-  const save = () => {
-    setShowForm(false)
-    setSaved(true)
-    setForm({ title: '', category: 'Graphic Design', skills: '', description: '' })
+  const save = async () => {
+    if (!form.title.trim() || isSaving) return
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      const skillIds = form.skills
+        .split(',')
+        .map((name) => taxonomy?.find((skill) => skill.name.toLowerCase() === name.trim().toLowerCase())?._id)
+        .filter((id): id is Id<'skills'> => Boolean(id))
+      await createPortfolio({
+        title: form.title.trim(),
+        category: form.category,
+        description: form.description.trim() || undefined,
+        skills: skillIds,
+      })
+      setShowForm(false)
+      setSaved(true)
+      setForm({ title: '', category: 'Graphic Design', skills: '', description: '' })
+    } catch (cause) {
+      setSaveError(cause instanceof Error ? cause.message : 'Unable to save this project. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -281,11 +307,12 @@ export default function Portfolio({ onNavigate }: PageProps) {
               />
             </Field>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <Btn onClick={save}>Save project</Btn>
+              <Btn onClick={save} disabled={!form.title.trim() || isSaving}>{isSaving ? 'Saving…' : 'Save project'}</Btn>
               <Btn variant="secondary" onClick={() => setShowForm(false)}>
                 Cancel
               </Btn>
             </div>
+            {saveError && <p style={{ color: C.error, fontSize: 13, fontWeight: 700, marginBottom: 0 }}>{saveError}</p>}
           </div>
         </Card>
       )}

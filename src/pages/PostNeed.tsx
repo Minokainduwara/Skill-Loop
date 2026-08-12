@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -76,6 +78,11 @@ export default function PostNeed({ onNavigate }: PageProps) {
   const [custom, setCustom] = useState<string[]>([])
   const [customDraft, setCustomDraft] = useState('')
   const [step, setStep] = useState(0)
+  const taxonomy = useQuery(api.skills.list, {})
+  const createRequest = useMutation(api.jobRequests.create)
+  const saveAnalysis = useMutation(api.aiRequirements.setFromAnalysis)
+  const generateMatches = useMutation(api.matches.generate)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const timers = useRef<number[]>([])
 
@@ -102,7 +109,30 @@ export default function PostNeed({ onNavigate }: PageProps) {
     }
   }, [])
 
+  const persistRequest = async () => {
+    const budgetValue = Number(budget) || undefined
+    const deadlineValue = deadline ? new Date(deadline).getTime() : undefined
+    const jobRequestId = await createRequest({
+      title: desc.trim().slice(0, 80),
+      description: desc.trim(),
+      category: category === CATEGORIES[0] ? undefined : category,
+      budgetMin: budgetValue,
+      budgetMax: budgetValue,
+      deadline: Number.isFinite(deadlineValue) ? deadlineValue : undefined,
+      location: location.trim() || undefined,
+      isRemote: false,
+    })
+    const byName = new Map((taxonomy ?? []).map((skill) => [skill.name.toLowerCase(), skill._id]))
+    const requiredSkills = activeSkills.flatMap((name) => {
+      const id = byName.get(name.toLowerCase())
+      return id ? [id] : []
+    })
+    await saveAnalysis({ jobRequestId, category, requiredSkills, aiConfidence: 0.75 })
+    await generateMatches({ jobRequestId })
+  }
+
   const start = () => {
+    setSubmitError(null)
     setPhase('analyzing')
     setStep(0)
     timers.current.forEach((t) => window.clearTimeout(t))
@@ -110,7 +140,14 @@ export default function PostNeed({ onNavigate }: PageProps) {
     STEPS.forEach((_, i) => {
       timers.current.push(window.setTimeout(() => setStep(i + 1), 850 * (i + 1)))
     })
-    timers.current.push(window.setTimeout(() => setPhase('result'), 850 * STEPS.length + 700))
+    timers.current.push(window.setTimeout(() => {
+      void persistRequest()
+        .then(() => setPhase('result'))
+        .catch((cause) => {
+          setSubmitError(cause instanceof Error ? cause.message : 'Unable to post this request. Please try again.')
+          setPhase('form')
+        })
+    }, 850 * STEPS.length + 700))
   }
 
   const reset = () => {
@@ -153,6 +190,7 @@ export default function PostNeed({ onNavigate }: PageProps) {
           title="What do you need help with?"
           subtitle="Describe it in plain words. SkillLoop extracts the skills, then finds verified students near you — no job ads, no bidding wars."
         />
+        {submitError && <p style={{ color: C.error, fontSize: 13, fontWeight: 700 }}>{submitError}</p>}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 22 }} className="sl-pn-grid">
           <style>{`@media (min-width: 980px) { .sl-pn-grid { grid-template-columns: minmax(0,1.6fr) minmax(280px,1fr) !important; align-items: start } }`}</style>

@@ -8,7 +8,23 @@
  * @module
  */
 
+import type * as aiRequirements from "../aiRequirements.js";
+import type * as applications from "../applications.js";
+import type * as demandSignals from "../demandSignals.js";
+import type * as earnings from "../earnings.js";
 import type * as http from "../http.js";
+import type * as impactMetrics from "../impactMetrics.js";
+import type * as jobDeliverables from "../jobDeliverables.js";
+import type * as jobRequests from "../jobRequests.js";
+import type * as jobs from "../jobs.js";
+import type * as lib_notify from "../lib/notify.js";
+import type * as lib_payments from "../lib/payments.js";
+import type * as lib_roles from "../lib/roles.js";
+import type * as matches from "../matches.js";
+import type * as notifications from "../notifications.js";
+import type * as opportunities from "../opportunities.js";
+import type * as portfolios from "../portfolios.js";
+import type * as reviews from "../reviews.js";
 import type * as schemas_aiRequirements from "../schemas/aiRequirements.js";
 import type * as schemas_applications from "../schemas/applications.js";
 import type * as schemas_demandSignals from "../schemas/demandSignals.js";
@@ -26,6 +42,9 @@ import type * as schemas_skills from "../schemas/skills.js";
 import type * as schemas_studentProfiles from "../schemas/studentProfiles.js";
 import type * as schemas_studentSkills from "../schemas/studentSkills.js";
 import type * as schemas_users from "../schemas/users.js";
+import type * as skills from "../skills.js";
+import type * as studentProfiles from "../studentProfiles.js";
+import type * as studentSkills from "../studentSkills.js";
 import type * as users from "../users.js";
 
 import type {
@@ -35,7 +54,23 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  aiRequirements: typeof aiRequirements;
+  applications: typeof applications;
+  demandSignals: typeof demandSignals;
+  earnings: typeof earnings;
   http: typeof http;
+  impactMetrics: typeof impactMetrics;
+  jobDeliverables: typeof jobDeliverables;
+  jobRequests: typeof jobRequests;
+  jobs: typeof jobs;
+  "lib/notify": typeof lib_notify;
+  "lib/payments": typeof lib_payments;
+  "lib/roles": typeof lib_roles;
+  matches: typeof matches;
+  notifications: typeof notifications;
+  opportunities: typeof opportunities;
+  portfolios: typeof portfolios;
+  reviews: typeof reviews;
   "schemas/aiRequirements": typeof schemas_aiRequirements;
   "schemas/applications": typeof schemas_applications;
   "schemas/demandSignals": typeof schemas_demandSignals;
@@ -53,6 +88,9 @@ declare const fullApi: ApiFromModules<{
   "schemas/studentProfiles": typeof schemas_studentProfiles;
   "schemas/studentSkills": typeof schemas_studentSkills;
   "schemas/users": typeof schemas_users;
+  skills: typeof skills;
+  studentProfiles: typeof studentProfiles;
+  studentSkills: typeof studentSkills;
   users: typeof users;
 }>;
 

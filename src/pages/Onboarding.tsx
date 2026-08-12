@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -131,6 +133,11 @@ export default function Onboarding({ onNavigate }: PageProps) {
   const [radius, setRadius] = useState<number | null>(5)
   const [level, setLevel] = useState<string | null>(null)
   const [portfolio, setPortfolio] = useState('')
+  const taxonomy = useQuery(api.skills.list, {})
+  const updateProfile = useMutation(api.studentProfiles.update)
+  const addStudentSkill = useMutation(api.studentSkills.add)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const allSkills = [...SKILLS, ...extra]
 
@@ -152,6 +159,30 @@ export default function Onboarding({ onNavigate }: PageProps) {
     step === 1 ? skills.length > 0 : step === 2 ? slots.length > 0 && radius !== null : level !== null
 
   const meta = STEP_META[step - 1]
+
+  const finish = async () => {
+    if (!level || saving) return
+    setSaving(true)
+    setError(null)
+    try {
+      await updateProfile({
+        experienceLevel: level === 'Professional' ? 'advanced' : level.toLowerCase() as 'beginner' | 'intermediate' | 'advanced',
+        availability: slots.length ? 'available' : 'unavailable',
+      })
+      const knownSkills = new Map((taxonomy ?? []).map((skill) => [skill.name.toLowerCase(), skill._id]))
+      await Promise.all(
+        skills.flatMap((name, index) => {
+          const skillId = knownSkills.get(name.toLowerCase())
+          return skillId ? [addStudentSkill({ skillId, proficiencyLevel: level === 'Professional' ? 'expert' : level.toLowerCase() as 'beginner' | 'intermediate' | 'advanced', isPrimary: index === 0 }).catch(() => undefined)] : []
+        }),
+      )
+      onNavigate('dashboard')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to save your profile. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -377,11 +408,12 @@ export default function Onboarding({ onNavigate }: PageProps) {
                     Continue →
                   </Btn>
                 ) : (
-                  <Btn size="lg" disabled={!stepValid} onClick={() => onNavigate('dashboard')}>
-                    Build My Profile ✨
+                  <Btn size="lg" disabled={!stepValid || saving} onClick={finish}>
+                    {saving ? 'Saving…' : 'Build My Profile ✨'}
                   </Btn>
                 )}
               </div>
+              {error && <p style={{ margin: '12px 0 0', color: C.error, fontSize: 13, fontWeight: 700 }}>{error}</p>}
             </Card>
           </div>
 
