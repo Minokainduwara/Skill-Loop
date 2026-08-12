@@ -69,10 +69,10 @@ const ROWS: DemandRow[] = [
   { rank: 10, skill: 'Computer Repair', category: 'Development', requests: 7, growth: 3, budget: 1500, students: 4, level: 'Low', spark: [5, 6, 6, 6, 7, 7, 7] },
 ]
 
-const LEVEL_TONES: Record<Level, { color: string; bg: string; icon: string }> = {
-  High: { color: '#B91C1C', bg: '#FEE2E2', icon: '🔥' },
-  Medium: { color: '#B45309', bg: '#FEF3C7', icon: '📈' },
-  Low: { color: C.muted, bg: C.subtle, icon: '•' },
+const LEVEL_TONES: Record<Level, { color: string; bg: string; icon: React.ReactNode }> = {
+  High: { color: '#B91C1C', bg: '#FEE2E2', icon: <Icon name="spark" size={14} color="#B91C1C" /> },
+  Medium: { color: '#B45309', bg: '#FEF3C7', icon: <Icon name="trend" size={14} color="#B45309" /> },
+  Low: { color: C.muted, bg: C.subtle, icon: <span style={{ fontWeight: 800 }}>•</span> },
 }
 
 const CATEGORIES = ['All categories', 'Design', 'Media', 'Development', 'Education', 'Marketing', 'Admin']
@@ -210,7 +210,7 @@ export default function SkillDemand({ onNavigate }: PageProps) {
         {/* ---------------------------------------------------------- table */}
         {rows.length === 0 ? (
           <EmptyState
-            emoji="📊"
+            emoji={<Icon name="chart" size={26} color={C.primary} />}
             title="No skills in this category"
             text="Demand data has not been recorded for this category in the selected period."
             action={<Btn variant="secondary" onClick={() => setCategory(CATEGORIES[0])}>Reset filter</Btn>}

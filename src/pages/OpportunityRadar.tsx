@@ -9,6 +9,7 @@ import {
   Card,
   Grid,
   HERO_GRADIENT,
+  Icon,
   KPI,
   PageHead,
   SectionTitle,
@@ -22,7 +23,7 @@ type Level = 'HIGH' | 'MEDIUM' | 'LOW'
 interface Cluster {
   key: string
   name: string
-  emoji: string
+  icon: React.ReactNode
   requests: number
   value: number
   students: number
@@ -33,12 +34,12 @@ interface Cluster {
 }
 
 const CLUSTERS: Cluster[] = [
-  { key: 'design', name: 'Graphic Design', emoji: '🎨', requests: 12, value: 18500, students: 8, level: 'HIGH', x: 36, y: 32, area: 'Peradeniya campus' },
-  { key: 'video', name: 'Video Editing', emoji: '🎬', requests: 8, value: 11200, students: 6, level: 'MEDIUM', x: 63, y: 26, area: 'Kandy town' },
-  { key: 'web', name: 'Web Development', emoji: '💻', requests: 6, value: 14800, students: 5, level: 'MEDIUM', x: 71, y: 60, area: 'Colombo Road' },
-  { key: 'tutor', name: 'Tutoring', emoji: '📚', requests: 5, value: 9000, students: 11, level: 'LOW', x: 46, y: 70, area: 'Gatambe' },
-  { key: 'photo', name: 'Photography', emoji: '📷', requests: 4, value: 7600, students: 4, level: 'LOW', x: 24, y: 58, area: 'Kandy Lake' },
-  { key: 'social', name: 'Social Media', emoji: '📱', requests: 3, value: 5400, students: 7, level: 'LOW', x: 55, y: 46, area: 'Peradeniya' },
+  { key: 'design', name: 'Graphic Design', icon: <Icon name="brief" size={16} color="#fff" />, requests: 12, value: 18500, students: 8, level: 'HIGH', x: 36, y: 32, area: 'Peradeniya campus' },
+  { key: 'video', name: 'Video Editing', icon: <Icon name="spark" size={16} color="#fff" />, requests: 8, value: 11200, students: 6, level: 'MEDIUM', x: 63, y: 26, area: 'Kandy town' },
+  { key: 'web', name: 'Web Development', icon: <Icon name="brief" size={16} color="#fff" />, requests: 6, value: 14800, students: 5, level: 'MEDIUM', x: 71, y: 60, area: 'Colombo Road' },
+  { key: 'tutor', name: 'Tutoring', icon: <Icon name="graduation" size={16} color="#fff" />, requests: 5, value: 9000, students: 11, level: 'LOW', x: 46, y: 70, area: 'Gatambe' },
+  { key: 'photo', name: 'Photography', icon: <Icon name="spark" size={16} color="#fff" />, requests: 4, value: 7600, students: 4, level: 'LOW', x: 24, y: 58, area: 'Kandy Lake' },
+  { key: 'social', name: 'Social Media', icon: <Icon name="target" size={16} color="#fff" />, requests: 3, value: 5400, students: 7, level: 'LOW', x: 55, y: 46, area: 'Peradeniya' },
 ]
 
 const LEVEL_TONE: Record<Level, { color: string; bg: string; blip: string }> = {
@@ -118,7 +119,7 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
                 Scanning live
               </Badge>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 10 }}>
-                5 km radius · Peradeniya
+                5 km radius · Kamburupiya
               </div>
             </div>
             <div style={{ display: 'flex', gap: 26 }}>
@@ -229,7 +230,7 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
                       }}
                     >
                       <div style={{ fontSize: 12.5, fontWeight: 800, color: '#fff' }}>
-                        {c.emoji} {c.name}
+                        {c.icon} {c.name}
                       </div>
                       <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.7)' }}>
                         {c.requests} requests · {rupees(c.value)}
@@ -405,7 +406,8 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
                 color: C.text,
               }}
             >
-              🔥 {active.name}
+              <span style={{ display: 'inline-flex', marginRight: 8 }}><Icon name="spark" size={28} color="#fff" /></span>
+              {active.name}
             </h2>
             <p style={{ margin: 0, fontSize: 14.5, color: C.muted, lineHeight: 1.65, maxWidth: 520 }}>
               {active.requests} people around {active.area} recently requested {active.name.toLowerCase()}{' '}
@@ -458,7 +460,7 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
                 }}
               >
                 <Badge color={C.accent}>~{r.hint}</Badge>
-                <span>📍 {r.area}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="pin" size={12} color={C.muted} /> {r.area}</span>
                 <span>· {r.time}</span>
               </div>
             </Card>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Page } from './types'
+import type { Page, UserRole } from './types'
 import Nav from './components/Nav'
 import MobileNav from './components/MobileNav'
 import AdminNav from './components/AdminNav'
@@ -9,6 +9,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
+import CommunityDashboard from './pages/CommunityDashboard'
 import OpportunityRadar from './pages/OpportunityRadar'
 import DemandCluster from './pages/DemandCluster'
 import Opportunities from './pages/Opportunities'
@@ -37,41 +38,67 @@ const ADMIN_PAGES: Page[] = ['admin-dashboard', 'admin-users', 'admin-jobs', 'ad
 
 export default function App() {
   const [page, setPage] = useState<Page>('landing')
+  const [role, setRole] = useState<UserRole>('student')
 
   const navigate = (p: Page) => {
+    const studentPages: Page[] = [
+      'dashboard',
+      'onboarding',
+      'radar',
+      'demand-cluster',
+      'opportunities',
+      'opportunity-detail',
+      'ai-match',
+      'my-jobs',
+      'job-workspace',
+      'submit-work',
+      'completion',
+      'earnings',
+      'portfolio',
+      'skill-demand',
+    ]
+    const communityPages: Page[] = ['community-dashboard', 'post-need', 'economic-impact', 'messages', 'notifications', 'profile']
+
+    if (p === 'community-dashboard' || (role === 'community' && communityPages.includes(p))) {
+      setRole('community')
+    } else if (studentPages.includes(p)) {
+      setRole('student')
+    }
+
     setPage(p)
     window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   const render = () => {
     switch (page) {
-      case 'landing':            return <Landing onNavigate={navigate} />
-      case 'login':              return <Login onNavigate={navigate} />
-      case 'signup':             return <Signup onNavigate={navigate} />
-      case 'onboarding':         return <Onboarding onNavigate={navigate} />
-      case 'dashboard':          return <Dashboard onNavigate={navigate} />
-      case 'radar':              return <OpportunityRadar onNavigate={navigate} />
-      case 'demand-cluster':     return <DemandCluster onNavigate={navigate} />
-      case 'opportunities':      return <Opportunities onNavigate={navigate} />
+      case 'landing':          return <Landing onNavigate={navigate} />
+      case 'login':            return <Login onNavigate={navigate} />
+      case 'signup':           return <Signup onNavigate={navigate} />
+      case 'onboarding':       return <Onboarding onNavigate={navigate} />
+      case 'dashboard':        return <Dashboard onNavigate={navigate} />
+      case 'community-dashboard': return <CommunityDashboard onNavigate={navigate} />
+      case 'radar':            return <OpportunityRadar onNavigate={navigate} />
+      case 'demand-cluster':   return <DemandCluster onNavigate={navigate} />
+      case 'opportunities':    return <Opportunities onNavigate={navigate} />
       case 'opportunity-detail': return <OpportunityDetail onNavigate={navigate} />
-      case 'ai-match':           return <AIMatch onNavigate={navigate} />
-      case 'post-need':          return <PostNeed onNavigate={navigate} />
-      case 'my-jobs':            return <MyJobs onNavigate={navigate} />
-      case 'job-workspace':      return <JobWorkspace onNavigate={navigate} />
-      case 'submit-work':        return <SubmitWork onNavigate={navigate} />
-      case 'completion':         return <Completion onNavigate={navigate} />
-      case 'earnings':           return <Earnings onNavigate={navigate} />
-      case 'economic-impact':    return <EconomicImpact onNavigate={navigate} />
-      case 'messages':           return <Messages onNavigate={navigate} />
-      case 'profile':            return <Profile onNavigate={navigate} />
-      case 'portfolio':          return <Portfolio onNavigate={navigate} />
-      case 'skill-demand':       return <SkillDemand onNavigate={navigate} />
-      case 'notifications':      return <Notifications onNavigate={navigate} />
-      case 'admin-dashboard':    return <AdminDashboard onNavigate={navigate} />
-      case 'admin-users':        return <AdminUsers onNavigate={navigate} />
-      case 'admin-jobs':         return <AdminJobs onNavigate={navigate} />
-      case 'admin-payments':     return <AdminPayments onNavigate={navigate} />
-      case 'admin-analytics':    return <AdminAnalytics onNavigate={navigate} />
+      case 'ai-match':         return <AIMatch onNavigate={navigate} />
+      case 'post-need':        return <PostNeed onNavigate={navigate} />
+      case 'my-jobs':          return <MyJobs onNavigate={navigate} />
+      case 'job-workspace':    return <JobWorkspace onNavigate={navigate} />
+      case 'submit-work':      return <SubmitWork onNavigate={navigate} />
+      case 'completion':       return <Completion onNavigate={navigate} />
+      case 'earnings':         return <Earnings onNavigate={navigate} />
+      case 'economic-impact':  return <EconomicImpact onNavigate={navigate} />
+      case 'messages':         return <Messages onNavigate={navigate} />
+      case 'profile':          return <Profile onNavigate={navigate} />
+      case 'portfolio':        return <Portfolio onNavigate={navigate} />
+      case 'skill-demand':     return <SkillDemand onNavigate={navigate} />
+      case 'notifications':    return <Notifications onNavigate={navigate} />
+      case 'admin-dashboard':  return <AdminDashboard onNavigate={navigate} />
+      case 'admin-users':      return <AdminUsers onNavigate={navigate} />
+      case 'admin-jobs':       return <AdminJobs onNavigate={navigate} />
+      case 'admin-payments':   return <AdminPayments onNavigate={navigate} />
+      case 'admin-analytics':  return <AdminAnalytics onNavigate={navigate} />
     }
   }
 
@@ -95,11 +122,11 @@ export default function App() {
   return (
     <div style={{ minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'Manrope', system-ui, sans-serif" }}>
       <GlobalFX />
-      {!fullscreen && <Nav onNavigate={navigate} currentPage={page} />}
+      {!fullscreen && <Nav onNavigate={navigate} currentPage={page} currentRole={role} />}
       <main key={page} className="sl-rise">
         {render()}
       </main>
-      <MobileNav onNavigate={navigate} currentPage={page} />
+      <MobileNav onNavigate={navigate} currentPage={page} currentRole={role} />
     </div>
   )
 }
