@@ -1,0 +1,313 @@
+.post-card {
+  display: flex;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.post-content {
+  flex: 1;
+  padding: 8px 16px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clickable:hover {
+  background-color: #f8f9fa;
+}
+
+.vote-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background-color: #f8f9fa;
+  gap: 4px;
+}
+
+.vote-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #878a8c;
+}
+
+.vote-button:hover {
+  background-color: #e9ecef;
+  border-radius: 4px;
+}
+
+.vote-button:hover {
+  color: #ff4500;
+}
+
+.vote-button.voted {
+  color: #ff4500;
+}
+
+.vote-button.voted:hover {
+  background-color: rgba(255, 69, 0, 0.1);
+}
+
+.vote-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.vote-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.vote-count {
+  font-weight: 600;
+  font-size: 12px;
+  color: #1a1a1b;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #787c7e;
+  margin-bottom: 8px;
+}
+
+.subreddit-link {
+  color: #1a1a1b;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.subreddit-link:hover {
+  text-decoration: underline;
+}
+
+.post-author {
+  color: #787c7e;
+}
+
+.post-time {
+  color: #787c7e;
+}
+
+.post-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: #1a1a1b;
+}
+
+.post-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1a1a1b;
+  margin: 0;
+}
+
+.post-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 8px;
+  font-size: 12px;
+  color: #878a8c;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.action-button:hover {
+  background-color: #e9ecef;
+}
+
+.post-card.expanded {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.post-card.expanded .post-title {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.post-card.expanded .post-body {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.post-votes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background-color: #f8f9fa;
+  min-width: 40px;
+  gap: 2px;
+}
+
+.upvote-count {
+  color: #ff4500;
+}
+
+.downvote-count {
+  color: #7193ff;
+}
+
+.total-count {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.vote-details {
+  display: none;
+  font-size: 12px;
+  color: #878a8c;
+  text-align: center;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.post-votes:hover .vote-details {
+  display: flex;
+}
+
+.post-dot {
+  margin: 0 4px;
+}
+
+.post-timestamp {
+  color: #787c7e;
+}
+
+.post-subreddit {
+  color: #0079d3;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.post-subreddit:hover {
+  text-decoration: underline;
+}
+
+.delete-button {
+  color: #ff4444;
+}
+
+.delete-button:hover {
+  color: #cc0000;
+  background-color: rgba(255, 68, 68, 0.1);
+}
+
+.comments-section {
+  margin-top: 16px;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.comment-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  background-color: #ffffff;
+  color: #1a1a1b;
+  transition: border-color 0.2s;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: #0079d3;
+  box-shadow: 0 0 0 1px #0079d3;
+}
+
+.comment-input::placeholder {
+  color: #878a8c;
+}
+
+.comment-submit {
+  align-self: flex-end;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #0079d3;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.comment-submit:hover {
+  background-color: #005fa3;
+}
+
+.comment-submit:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.post-image-container {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.small-img {
+  max-width: 125px;
+}
+
+.post-image {
+  max-width: 100%;
+  max-height: 512px;
+  object-fit: contain;
+}
+
+.preview-post {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}

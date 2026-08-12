@@ -1,0 +1,77 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 98;
+}
+
+.create-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #edeff1;
+  width: 280px;
+  z-index: 99;
+}
+
+.dropdown-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #edeff1;
+  font-size: 10px;
+  font-weight: 500;
+  color: #878a8c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dropdown-options {
+  padding: 8px;
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 4px;
+  gap: 12px;
+}
+
+.dropdown-option:hover {
+  background-color: #f6f7f8;
+}
+
+.option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #878a8c;
+}
+
+.option-description {
+  font-size: 12px;
+  color: grey;
+}
+
+.option-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1c1c1c;
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+}
