@@ -74,7 +74,7 @@ export default function Nav({ onNavigate, currentPage, currentRole }: NavProps) 
           <Logo />
         </div>
 
-        {!isPublic && (
+        {authed && (
           <nav
             className="scrollbar-hide"
             style={{ display: 'flex', gap: 2, marginLeft: 12, overflowX: 'auto', flex: 1 }}
@@ -115,7 +115,7 @@ export default function Nav({ onNavigate, currentPage, currentRole }: NavProps) 
             position: 'relative',
           }}
         >
-          {isPublic ? (
+          {!authed ? (
             <>
               <Btn variant="ghost" size="sm" onClick={() => go('login')}>
                 Sign in
