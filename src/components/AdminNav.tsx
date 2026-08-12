@@ -111,7 +111,7 @@ export default function AdminNav({
           }}
         >
           <span style={{ fontSize: 16, width: 22, textAlign: 'center' }}>↩</span>
-          Student View
+          Logout
         </button>
       </nav>
 
