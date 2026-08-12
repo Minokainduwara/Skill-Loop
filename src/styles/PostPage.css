@@ -1,0 +1,26 @@
+
+.post-page .container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.post-page.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  color: #1a1a1b;
+}
+
+.back-link {
+  color: black;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px
+}
+
+.back-link:hover {
+  color: grey;
+}

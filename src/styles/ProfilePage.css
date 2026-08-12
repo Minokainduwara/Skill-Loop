@@ -1,0 +1,47 @@
+.content-container {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-top: 69px;
+}
+
+.profile-header {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.profile-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1b;
+  margin: 0;
+}
+
+.posts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.no-posts {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  color: #666;
+}
+
+.loading {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  color: #666;
+  margin-top: 16px;
+}
