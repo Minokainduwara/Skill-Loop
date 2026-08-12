@@ -12,15 +12,13 @@ const LINKS: { key: Page; label: string }[] = [
   { key: 'portfolio', label: 'Portfolio' },
 ]
 
-const PUBLIC_PAGES: Page[] = ['landing', 'login', 'signup', 'onboarding']
-
 export default function Nav({ onNavigate, currentPage }: NavProps) {
   const [bell, setBell] = useState(false)
   const [menu, setMenu] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)
   const clerk = useClerk()
-  const { user } = useUser()
-  const isPublic = PUBLIC_PAGES.includes(currentPage)
+  const { user, isLoaded, isSignedIn } = useUser()
+  const authed = isLoaded && isSignedIn
   const unread = NOTIFICATIONS.filter((n) => n.unread).length
   const displayName = user?.firstName || user?.username || USER.name
 
@@ -63,11 +61,11 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
           gap: 20,
         }}
       >
-        <div style={{ cursor: 'pointer' }} onClick={() => go(isPublic ? 'landing' : 'dashboard')}>
+        <div style={{ cursor: 'pointer' }} onClick={() => go(authed ? 'dashboard' : 'landing')}>
           <Logo />
         </div>
 
-        {!isPublic && (
+        {authed && (
           <nav
             className="scrollbar-hide"
             style={{ display: 'flex', gap: 2, marginLeft: 12, overflowX: 'auto', flex: 1 }}
@@ -108,9 +106,9 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
             position: 'relative',
           }}
         >
-          {isPublic ? (
+          {!authed ? (
             <>
-              <Btn variant="ghost" size="sm" onClick={() => clerk.openSignIn()}>
+              <Btn variant="ghost" size="sm" onClick={() => { if (isSignedIn) return; clerk.openSignIn() }}>
                 Sign in
               </Btn>
               <Btn size="sm" onClick={() => go('signup')}>
