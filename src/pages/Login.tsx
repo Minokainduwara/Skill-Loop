@@ -12,13 +12,16 @@ import {
   KPI,
   Logo,
   SHADOW,
+  Icon,
   rupees,
 } from '../components/ui'
 
+type LoginRole = 'student' | 'community'
+
 const CHAIN = [
-  { icon: '🎓', title: 'Student', sub: 'Kasun Perera · Peradeniya', tone: '#5EEAD4' },
-  { icon: '🎯', title: 'Opportunity', sub: 'Event Poster Design · 96% match', tone: '#A5B4FC' },
-  { icon: '💰', title: 'Income', sub: rupees(2000) + ' released to wallet', tone: '#86EFAC' },
+  { icon: <Icon name="graduation" size={18} color="#5EEAD4" />, title: 'Student', sub: 'Kasun Perera · Kamburupitiya', tone: '#5EEAD4' },
+  { icon: <Icon name="target" size={18} color="#A5B4FC" />, title: 'Opportunity', sub: 'Event Poster Design · 96% match', tone: '#A5B4FC' },
+  { icon: <Icon name="coin" size={18} color="#86EFAC" />, title: 'Income', sub: rupees(2000) + ' released to wallet', tone: '#86EFAC' },
 ]
 
 export default function Login({ onNavigate }: PageProps) {
@@ -26,6 +29,7 @@ export default function Login({ onNavigate }: PageProps) {
   const [password, setPassword] = useState('skillloop')
   const [show, setShow] = useState(false)
   const [remember, setRemember] = useState(true)
+  const [role, setRole] = useState<LoginRole>('student')
 
   const valid = email.includes('@') && password.length >= 4
 
@@ -200,6 +204,45 @@ export default function Login({ onNavigate }: PageProps) {
               Sign in to your SkillLoop account to pick up where you left off.
             </p>
 
+            <Field label="I am logging in as">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setRole('student')}
+                  className="sl-press"
+                  style={{
+                    border: `1.5px solid ${role === 'student' ? C.primary : C.border}`,
+                    background: role === 'student' ? 'linear-gradient(160deg,#EEF2FF,#F0FDFA)' : C.surface,
+                    borderRadius: 14,
+                    padding: '12px 14px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Student</div>
+                  <div style={{ fontSize: 12.5, color: C.muted, marginTop: 3 }}>Do jobs and earn</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('community')}
+                  className="sl-press"
+                  style={{
+                    border: `1.5px solid ${role === 'community' ? C.primary : C.border}`,
+                    background: role === 'community' ? 'linear-gradient(160deg,#EEF2FF,#F0FDFA)' : C.surface,
+                    borderRadius: 14,
+                    padding: '12px 14px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Community member</div>
+                  <div style={{ fontSize: 12.5, color: C.muted, marginTop: 3 }}>Post jobs only</div>
+                </button>
+              </div>
+            </Field>
+
             <Field label="Email address">
               <Input
                 type="email"
@@ -294,13 +337,18 @@ export default function Login({ onNavigate }: PageProps) {
               </button>
             </div>
 
-            <Btn full size="lg" disabled={!valid} onClick={() => onNavigate('dashboard')}>
+            <Btn full size="lg" disabled={!valid} onClick={() => onNavigate(role === 'student' ? 'dashboard' : 'community-dashboard')}>
               Sign In
             </Btn>
 
             <Divider label="OR" />
 
-            <Btn full size="lg" variant="secondary" onClick={() => onNavigate('dashboard')}>
+            <Btn
+              full
+              size="lg"
+              variant="secondary"
+              onClick={() => onNavigate(role === 'student' ? 'dashboard' : 'community-dashboard')}
+            >
               <span style={{ fontSize: 15 }}>G</span> Continue with Google
             </Btn>
 
@@ -335,7 +383,7 @@ export default function Login({ onNavigate }: PageProps) {
               lineHeight: 1.6,
             }}
           >
-            Protected by escrow payments · University-verified students
+            Protected by escrow payments · Students and community members
           </p>
         </div>
       </main>

@@ -1,7 +1,7 @@
 import type { NavProps, Page } from '../types'
 import { C } from './ui'
 
-const ITEMS: { key: Page; label: string; icon: string }[] = [
+const STUDENT_ITEMS: { key: Page; label: string; icon: string }[] = [
   { key: 'dashboard', label: 'Home', icon: '🏠' },
   { key: 'radar', label: 'Discover', icon: '📡' },
   { key: 'my-jobs', label: 'Jobs', icon: '💼' },
@@ -9,10 +9,19 @@ const ITEMS: { key: Page; label: string; icon: string }[] = [
   { key: 'profile', label: 'Profile', icon: '👤' },
 ]
 
+const COMMUNITY_ITEMS: { key: Page; label: string; icon: string }[] = [
+  { key: 'community-dashboard', label: 'Home', icon: '🏠' },
+  { key: 'post-need', label: 'Post', icon: '➕' },
+  { key: 'messages', label: 'Messages', icon: '💬' },
+  { key: 'economic-impact', label: 'Impact', icon: '📊' },
+  { key: 'profile', label: 'Profile', icon: '👤' },
+]
+
 const HIDE: Page[] = ['landing', 'login', 'signup', 'onboarding']
 
-export default function MobileNav({ onNavigate, currentPage }: NavProps) {
+export default function MobileNav({ onNavigate, currentPage, currentRole }: NavProps) {
   if (HIDE.includes(currentPage)) return null
+  const items = currentRole === 'community' ? COMMUNITY_ITEMS : STUDENT_ITEMS
   return (
     <nav
       style={{
@@ -31,7 +40,7 @@ export default function MobileNav({ onNavigate, currentPage }: NavProps) {
       className="sl-mobile-nav"
     >
       <style>{`@media (min-width: 860px) { .sl-mobile-nav { display: none !important } }`}</style>
-      {ITEMS.map((it) => {
+      {items.map((it) => {
         const on = currentPage === it.key
         return (
           <button

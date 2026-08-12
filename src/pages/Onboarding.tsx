@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { PageProps } from '../types'
 import {
@@ -16,6 +17,7 @@ import {
   SectionTitle,
   Shell,
   SkillChip,
+  Icon,
   USER,
 } from '../components/ui'
 
@@ -36,11 +38,11 @@ const SKILLS = [
   'Marketing',
 ]
 
-const AVAILABILITY: { key: string; icon: string; sub: string }[] = [
-  { key: 'Weekday mornings', icon: '🌅', sub: 'Before 12 pm, Mon–Fri' },
-  { key: 'Weekday evenings', icon: '🌆', sub: 'After 5 pm, Mon–Fri' },
-  { key: 'Weekends', icon: '📅', sub: 'Saturday & Sunday' },
-  { key: 'Flexible', icon: '♾️', sub: 'I can adapt to the job' },
+const AVAILABILITY: { key: string; icon: ReactNode; sub: string }[] = [
+  { key: 'Weekday mornings', icon: <Icon name="spark" size={16} color={C.primary} />, sub: 'Before 12 pm, Mon–Fri' },
+  { key: 'Weekday evenings', icon: <Icon name="clock" size={16} color={C.primary} />, sub: 'After 5 pm, Mon–Fri' },
+  { key: 'Weekends', icon: <Icon name="calendar" size={16} color={C.primary} />, sub: 'Saturday & Sunday' },
+  { key: 'Flexible', icon: <Icon name="spark" size={16} color={C.primary} />, sub: 'I can adapt to the job' },
 ]
 
 const RADII = [
@@ -50,10 +52,10 @@ const RADII = [
 ]
 
 const LEVELS = [
-  { key: 'Beginner', icon: '🌱', desc: 'Learning the craft. Some coursework or personal projects.' },
-  { key: 'Intermediate', icon: '⚡', desc: 'A few real projects delivered. Comfortable working solo.' },
-  { key: 'Advanced', icon: '🚀', desc: 'Consistent paid work with strong, repeatable results.' },
-  { key: 'Professional', icon: '🏆', desc: 'Client-ready standard. You work to briefs and deadlines.' },
+  { key: 'Beginner', icon: <Icon name="graduation" size={16} color={C.primary} />, desc: 'Learning the craft. Some coursework or personal projects.' },
+  { key: 'Intermediate', icon: <Icon name="spark" size={16} color={C.primary} />, desc: 'A few real projects delivered. Comfortable working solo.' },
+  { key: 'Advanced', icon: <Icon name="trend" size={16} color={C.primary} />, desc: 'Consistent paid work with strong, repeatable results.' },
+  { key: 'Professional', icon: <Icon name="target" size={16} color={C.primary} />, desc: 'Client-ready standard. You work to briefs and deadlines.' },
 ]
 
 const STEP_META = [
@@ -72,7 +74,7 @@ function SelectCard({
 }: {
   active: boolean
   onClick: () => void
-  icon: string
+  icon: ReactNode
   title: string
   sub: string
   right?: string

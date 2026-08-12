@@ -13,8 +13,10 @@ import {
   SearchInput,
   Select,
   SkillChip,
+  Icon,
   rupees,
 } from '../components/ui'
+import type { ReactNode } from 'react'
 
 type JobType = 'Quick Task' | 'Medium Task' | 'Project'
 
@@ -52,10 +54,10 @@ const OPPORTUNITIES: Opportunity[] = [
   },
   {
     id: 'o2',
-    title: 'Python Tutoring (A/L Revision)',
+function Meta({ icon, value }: { icon: ReactNode; value: string }) {
     client: 'Nimali Jayasuriya',
     category: 'Tutoring',
-    type: 'Medium Task',
+      <span style={{ fontSize: 13, display: 'inline-flex' }}>{icon}</span>
     budget: 4500,
     deadline: 'August 22',
     daysLeft: 10,
@@ -305,7 +307,7 @@ export default function Opportunities({ onNavigate }: PageProps) {
 
         {list.length === 0 ? (
           <EmptyState
-            emoji="🧭"
+            emoji={<Icon name="radar" size={26} color={C.primary} />}
             title="No opportunities yet"
             text="Your next opportunity may be closer than you think."
             action={<Btn onClick={() => onNavigate('radar')}>Explore Demand</Btn>}
@@ -347,9 +349,9 @@ export default function Opportunities({ onNavigate }: PageProps) {
                     borderBottom: `1px solid ${C.subtle}`,
                   }}
                 >
-                  <Meta icon="💰" value={rupees(o.budget)} />
-                  <Meta icon="⏳" value={`${o.daysLeft} day${o.daysLeft > 1 ? 's' : ''} left`} />
-                  <Meta icon="📍" value={`${o.distance} km`} />
+                  <Meta icon={<Icon name="coin" size={14} color={C.primary} />} value={rupees(o.budget)} />
+                  <Meta icon={<Icon name="clock" size={14} color={C.accent} />} value={`${o.daysLeft} day${o.daysLeft > 1 ? 's' : ''} left`} />
+                  <Meta icon={<Icon name="pin" size={14} color={C.warning} />} value={`${o.distance} km`} />
                 </div>
 
                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -395,10 +397,10 @@ export default function Opportunities({ onNavigate }: PageProps) {
   )
 }
 
-function Meta({ icon, value }: { icon: string; value: string }) {
+function Meta({ icon, value }: { icon: React.ReactNode; value: string }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: C.text }}>
-      <span style={{ fontSize: 13 }}>{icon}</span>
+      <span style={{ fontSize: 13, display: 'inline-flex' }}>{icon}</span>
       {value}
     </span>
   )

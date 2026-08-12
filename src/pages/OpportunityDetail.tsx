@@ -18,6 +18,7 @@ import {
   Stars,
   StatusBadge,
   Verified,
+  Icon,
   rupees,
 } from '../components/ui'
 
@@ -39,9 +40,9 @@ const REQUIREMENTS = [
 ]
 
 const ATTACHMENTS = [
-  { icon: '📄', name: 'robotics-exhibition-brief.pdf', size: '412 KB' },
-  { icon: '🗂️', name: 'society-logo-assets.zip', size: '2.1 MB' },
-  { icon: '🎨', name: 'brand-colours-sheet.png', size: '188 KB' },
+  { icon: <Icon name="brief" size={18} color={C.primary} />, name: 'robotics-exhibition-brief.pdf', size: '412 KB' },
+  { icon: <Icon name="folder" size={18} color={C.primary} />, name: 'society-logo-assets.zip', size: '2.1 MB' },
+  { icon: <Icon name="brief" size={18} color={C.primary} />, name: 'brand-colours-sheet.png', size: '188 KB' },
 ]
 
 const SIMILAR = [
@@ -90,9 +91,9 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
               </div>
 
               <Grid min={170} gap={12}>
-                <InfoTile icon="💰" label="Budget" value={rupees(2000)} />
-                <InfoTile icon="🗓️" label="Deadline" value="August 15 · 3 days left" tone={C.warning} />
-                <InfoTile icon="📍" label="Location" value="2.4 km away" tone={C.accent} />
+                <InfoTile icon={<Icon name="coin" size={18} color={C.primary} />} label="Budget" value={rupees(2000)} />
+                <InfoTile icon={<Icon name="calendar" size={18} color={C.warning} />} label="Deadline" value="August 15 · 3 days left" tone={C.warning} />
+                <InfoTile icon={<Icon name="pin" size={18} color={C.accent} />} label="Location" value="2.4 km away" tone={C.accent} />
               </Grid>
 
               <Divider />
@@ -170,7 +171,7 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
             <Card>
               <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 800, color: C.text }}>About the client</h3>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-                <Avatar name="University Robotics Society" size={52} emoji="🤖" />
+                <Avatar name="University Robotics Society" size={52} emoji={<Icon name="brain" size={26} color={C.primary} />} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 15.5, fontWeight: 800, color: C.text }}>
@@ -266,7 +267,7 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
                       marginBottom: 14,
                     }}
                   >
-                    ✅
+                    <Icon name="check" size={22} color="#15803D" />
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>Opportunity accepted</div>
                   <p style={{ margin: '6px 0 16px', fontSize: 13, color: C.muted, lineHeight: 1.65 }}>
@@ -299,7 +300,7 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
 
             <Card pad={16} style={{ background: '#F0FDFA', borderColor: '#99F6E4' }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: 18 }}>🛡️</span>
+                <span style={{ fontSize: 18, display: 'inline-flex' }}><Icon name="shield" size={18} color="#0F766E" /></span>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 800, color: '#0F766E' }}>Protected by SkillLoop escrow</div>
                   <p style={{ margin: '5px 0 0', fontSize: 12.5, color: '#0F766E', lineHeight: 1.6, opacity: 0.9 }}>

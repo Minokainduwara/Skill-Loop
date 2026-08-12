@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { PageProps } from '../types'
 import {
@@ -14,22 +15,23 @@ import {
   SHADOW,
   Select,
   Verified,
+  Icon,
   rupees,
 } from '../components/ui'
 
 type Role = 'student' | 'requester'
 
-const ROLES: { key: Role; icon: string; title: string; sub: string; perks: string[] }[] = [
+const ROLES: { key: Role; icon: ReactNode; title: string; sub: string; perks: string[] }[] = [
   {
     key: 'student',
-    icon: '🎓',
+    icon: <Icon name="graduation" size={24} color={C.primary} />,
     title: 'Earn with my skills',
     sub: "I'm a student who wants paid local work",
     perks: ['AI-matched opportunities', 'Verified student badge', 'Portfolio + ratings'],
   },
   {
     key: 'requester',
-    icon: '🧩',
+    icon: <Icon name="people" size={24} color={C.primary} />,
     title: 'Find someone for a task',
     sub: 'I have a need and want affordable local help',
     perks: ['Matches in minutes', 'Escrow protection', 'Average 60% savings'],
@@ -37,14 +39,19 @@ const ROLES: { key: Role; icon: string; title: string; sub: string; perks: strin
 ]
 
 const UNIVERSITIES = [
-  'University of Peradeniya',
-  'University of Colombo',
-  'University of Moratuwa',
-  'University of Ruhuna',
-  'University of Kelaniya',
+  
+  'University of Ruhuna'
+  
 ]
-const FACULTIES = ['Science', 'Engineering', 'Arts', 'Management', 'Medicine', 'Agriculture']
-const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate']
+const FACULTIES = ['Technology']
+const PROGRAMS = [
+  
+  'Bachelor of Biosystems Technology ',
+  'Bachelor of Engineering Technology ',
+  'Bachelor of Information & Communication Technology',
+  
+]
+const YEARS = ['Freshers','1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate']
 
 export default function Signup({ onNavigate }: PageProps) {
   const [role, setRole] = useState<Role>('student')
@@ -138,10 +145,10 @@ export default function Signup({ onNavigate }: PageProps) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
             {[
-              ['🛰️', 'Live demand radar within 10 km of you'],
-              ['🤖', 'AI ranks the best match, no bidding'],
-              ['🔒', 'Payments held in escrow until approval'],
-              ['⭐', 'Every job builds your public portfolio'],
+              [<Icon name="radar" size={17} color="#fff" />, 'Live demand radar within 10 km of you'],
+              [<Icon name="brain" size={17} color="#fff" />, 'AI ranks the best match, no bidding'],
+              [<Icon name="shield" size={17} color="#fff" />, 'Payments held in escrow until approval'],
+              [<Icon name="star" size={17} color="#fff" />, 'Every job builds your public portfolio'],
             ].map(([icon, text], i) => (
               <div
                 key={text}
@@ -156,7 +163,7 @@ export default function Signup({ onNavigate }: PageProps) {
                   animation: `sl-rise .6s cubic-bezier(.22,1,.36,1) ${i * 0.1}s both`,
                 }}
               >
-                <span style={{ fontSize: 17 }}>{icon}</span>
+                <span style={{ fontSize: 17, display: 'inline-flex' }}>{icon}</span>
                 <span style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>
                   {text}
                 </span>
@@ -361,11 +368,7 @@ export default function Signup({ onNavigate }: PageProps) {
                   </Field>
                 </Grid>
                 <Field label="Study program">
-                  <Input
-                    value={program}
-                    onChange={(e) => setProgram(e.target.value)}
-                    placeholder="BSc Engineering"
-                  />
+                  <Select value={program} onChange={setProgram} options={PROGRAMS} />
                 </Field>
                 <Field label="University email" style={{ marginBottom: 12 }}>
                   <Input
@@ -390,10 +393,10 @@ export default function Signup({ onNavigate }: PageProps) {
               full
               size="lg"
               disabled={!canSubmit}
-              onClick={() => onNavigate(role === 'student' ? 'onboarding' : 'post-need')}
+              onClick={() => onNavigate(role === 'student' ? 'onboarding' : 'community-dashboard')}
               style={{ marginTop: role === 'student' ? 0 : 8 }}
             >
-              {role === 'student' ? 'Create account & continue' : 'Create account & post a need'}
+              {role === 'student' ? 'Create account & continue' : 'Create account & open dashboard'}
             </Btn>
 
             <p

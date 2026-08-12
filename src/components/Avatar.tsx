@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { SHADOW } from './tokens'
 
 const AV_TONES = [
@@ -18,7 +19,7 @@ export function Avatar({
   name: string
   size?: number
   ring?: boolean
-  emoji?: string
+  emoji?: ReactNode
 }) {
   const initials = name
     .split(' ')

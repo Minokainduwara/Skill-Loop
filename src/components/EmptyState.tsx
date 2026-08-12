@@ -7,7 +7,7 @@ export function EmptyState({
   text,
   action,
 }: {
-  emoji: string
+  emoji: ReactNode
   title: string
   text: string
   action?: ReactNode
