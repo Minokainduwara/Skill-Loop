@@ -26,11 +26,14 @@ export type Page =
   | 'admin-jobs'
   | 'admin-payments'
   | 'admin-analytics'
+  | 'requester-dashboard'
+  | 'requester-applications'
 
-export type Navigate = (page: Page) => void
+export type Navigate = (page: Page, data?: any) => void
 
 export interface PageProps {
   onNavigate: Navigate
+  data?: any
 }
 
 export interface NavProps {

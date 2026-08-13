@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useQuery, useMutation } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -51,8 +53,27 @@ const SIMILAR = [
 ]
 
 export default function OpportunityDetail({ onNavigate }: PageProps) {
-  const [accepted, setAccepted] = useState(false)
   const [saved, setSaved] = useState(false)
+  const openRequests = useQuery(api.jobRequests.listOpen, {})
+  const myApplications = useQuery(api.applications.listMine)
+  const applyMutation = useMutation(api.applications.apply)
+
+  // Use the first open request for the demo
+  const jobRequest = openRequests?.[0]
+  
+  // Check if we have already applied
+  const application = myApplications?.find(a => a.jobRequestId === jobRequest?._id)
+  const applied = !!application
+  const accepted = application?.status === 'accepted'
+
+  const handleApply = async () => {
+    if (!jobRequest) return
+    await applyMutation({
+      jobRequestId: jobRequest._id,
+      proposal: "I would love to work on this project! I have the required skills.",
+      proposedPrice: jobRequest.budgetMax ?? 2000,
+    })
+  }
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -60,8 +81,8 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
         <PageHead
           onBack={() => onNavigate('opportunities')}
           backLabel="Back to Opportunities"
-          title="Robotics Exhibition Poster"
-          subtitle="Posted 2 minutes ago by University Robotics Society · Peradeniya, Kandy"
+          title={jobRequest ? jobRequest.title : "Robotics Exhibition Poster"}
+          subtitle={`Posted just now by Requester · Peradeniya, Kandy`}
         />
 
         <div
@@ -90,7 +111,7 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
               </div>
 
               <Grid min={170} gap={12}>
-                <InfoTile icon="💰" label="Budget" value={rupees(2000)} />
+                <InfoTile icon="💰" label="Budget" value={rupees(jobRequest?.budgetMax ?? 2000)} />
                 <InfoTile icon="🗓️" label="Deadline" value="August 15 · 3 days left" tone={C.warning} />
                 <InfoTile icon="📍" label="Location" value="2.4 km away" tone={C.accent} />
               </Grid>
@@ -99,11 +120,10 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
 
               <h2 style={{ margin: '0 0 10px', fontSize: 17, fontWeight: 800, color: C.text }}>The brief</h2>
               <p style={{ margin: 0, fontSize: 14.5, color: C.muted, lineHeight: 1.75 }}>
-                "Need a modern promotional poster for our upcoming Robotics Exhibition. The design will be used on
+                {jobRequest?.description || `"Need a modern promotional poster for our upcoming Robotics Exhibition. The design will be used on
                 social media and printed posters around the Faculty of Engineering." We expect around 900 visitors
                 across two days, so the poster has to read clearly from a distance while still looking good in a
-                phone feed. Bold type, one strong focal image of a robot arm, and generous breathing room work best —
-                previous years leaned too heavy on stock clip art.
+                phone feed.`}
               </p>
 
               <div style={{ marginTop: 20 }}>
@@ -280,10 +300,21 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
                     Message Requester
                   </Btn>
                 </div>
+              ) : applied ? (
+                <div style={{ animation: 'sl-pop .4s both', textAlign: 'center', padding: '10px 0' }}>
+                  <div style={{ fontSize: 40, marginBottom: 10 }}>⏳</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>Application Pending</div>
+                  <p style={{ margin: '6px 0 16px', fontSize: 13, color: C.muted, lineHeight: 1.65 }}>
+                    Your application has been sent to the requester. You will be notified once they review it!
+                  </p>
+                  <Btn full variant="secondary" onClick={() => onNavigate('dashboard')}>
+                    Back to Dashboard
+                  </Btn>
+                </div>
               ) : (
                 <>
-                  <Btn full size="lg" onClick={() => setAccepted(true)}>
-                    Accept Opportunity
+                  <Btn full size="lg" onClick={handleApply} disabled={!jobRequest}>
+                    Apply for Opportunity
                   </Btn>
                   <div style={{ height: 10 }} />
                   <Btn full variant="secondary" onClick={() => onNavigate('messages')}>

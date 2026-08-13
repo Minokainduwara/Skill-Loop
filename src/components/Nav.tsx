@@ -65,7 +65,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
           gap: 20,
         }}
       >
-        <div style={{ cursor: 'pointer' }} onClick={() => go(authed ? 'dashboard' : 'landing')}>
+        <div style={{ cursor: 'pointer' }} onClick={() => go(authed ? (currentUser?.role === 'requester' ? 'requester-dashboard' : 'dashboard') : 'landing')}>
           <Logo />
         </div>
 

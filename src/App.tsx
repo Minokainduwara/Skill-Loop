@@ -31,15 +31,18 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminJobs from './pages/admin/AdminJobs'
 import AdminPayments from './pages/admin/AdminPayments'
 import AdminAnalytics from './pages/admin/AdminAnalytics'
-
+import RequesterDashboard from './pages/RequesterDashboard'
+import RequesterApplications from './pages/RequesterApplications'
 const FULLSCREEN: Page[] = ['login', 'signup', 'onboarding']
 const ADMIN_PAGES: Page[] = ['admin-dashboard', 'admin-users', 'admin-jobs', 'admin-payments', 'admin-analytics']
 
 export default function App() {
   const [page, setPage] = useState<Page>('landing')
+  const [pageData, setPageData] = useState<any>(null)
 
-  const navigate = (p: Page) => {
+  const navigate = (p: Page, data?: any) => {
     setPage(p)
+    if (data !== undefined) setPageData(data)
     window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
@@ -72,6 +75,8 @@ export default function App() {
       case 'admin-jobs':         return <AdminJobs onNavigate={navigate} />
       case 'admin-payments':     return <AdminPayments onNavigate={navigate} />
       case 'admin-analytics':    return <AdminAnalytics onNavigate={navigate} />
+      case 'requester-dashboard':return <RequesterDashboard onNavigate={navigate} data={pageData} />
+      case 'requester-applications': return <RequesterApplications onNavigate={navigate} data={pageData} />
     }
   }
 
