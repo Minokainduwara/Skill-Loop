@@ -36,15 +36,26 @@ export const studentHome = query({
 export const opportunityFeed = query({
   args: {},
   handler: async (ctx) => {
-    const requests = await ctx.db.query("jobRequests").withIndex("byStatus", (q) => q.eq("status", "open")).collect();
-    requests.sort((a, b) => b.createdAt - a.createdAt);
-    return await Promise.all(requests.map(async (request) => {
-      const [requester, requirements] = await Promise.all([
-        ctx.db.get("users", request.requesterId),
-        ctx.db.query("aiRequirements").withIndex("byJob", (q) => q.eq("jobRequestId", request._id)).first(),
-      ]);
-      const skills = await Promise.all((requirements?.requiredSkills ?? []).map((id) => ctx.db.get("skills", id)));
-      return { ...request, requester, skills: skills.filter((skill) => skill !== null), requirements };
+    const opps = await ctx.db.query("opportunities").withIndex("byStatus", (q) => q.eq("status", "active")).collect();
+    opps.sort((a, b) => b.createdAt - a.createdAt);
+    return await Promise.all(opps.map(async (opp) => {
+      let requester = null;
+      let requirements = null;
+      let isRemote = false;
+
+      if (opp.jobRequestId) {
+        const request = await ctx.db.get("jobRequests", opp.jobRequestId);
+        if (request) {
+          isRemote = request.isRemote;
+          [requester, requirements] = await Promise.all([
+            ctx.db.get("users", request.requesterId),
+            ctx.db.query("aiRequirements").withIndex("byJob", (q) => q.eq("jobRequestId", request._id)).first(),
+          ]);
+        }
+      }
+
+      const skills = await Promise.all((opp.requiredSkills ?? []).map((id) => ctx.db.get("skills", id)));
+      return { ...opp, requester, skills: skills.filter((skill) => skill !== null), requirements, isRemote };
     }));
   },
 });

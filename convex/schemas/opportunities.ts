@@ -5,6 +5,7 @@ export const opportunities = defineTable({
   title: v.string(),
   description: v.string(),
   category: v.string(),
+  jobRequestId: v.optional(v.id("jobRequests")),
 
   requiredSkills: v.array(v.id("skills")),
 
