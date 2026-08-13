@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useClerk, useUser } from '@clerk/clerk-react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { NavProps, Page } from '../types'
 import { Avatar, Badge, Btn, C, Logo, NOTIFICATIONS, SHADOW, USER } from './ui'
 
@@ -18,7 +20,9 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
   const wrap = useRef<HTMLDivElement>(null)
   const clerk = useClerk()
   const { user, isLoaded, isSignedIn } = useUser()
+  const currentUser = useQuery(api.users.current)
   const authed = isLoaded && isSignedIn
+  const isAdmin = currentUser?.role === 'admin'
   const unread = NOTIFICATIONS.filter((n) => n.unread).length
   const displayName = user?.firstName || user?.username || USER.name
 
@@ -117,9 +121,11 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
             </>
           ) : (
             <>
-              <Btn variant="secondary" size="sm" onClick={() => go('admin-dashboard')} style={{ display: 'inline-flex' }}>
-                ⚙ Admin
-              </Btn>
+              {isAdmin && (
+                <Btn variant="secondary" size="sm" onClick={() => go('admin-dashboard')} style={{ display: 'inline-flex' }}>
+                  ⚙ Admin
+                </Btn>
+              )}
               <Btn size="sm" onClick={() => go('post-need')} style={{ display: 'inline-flex' }}>
                 + Post a Need
               </Btn>
