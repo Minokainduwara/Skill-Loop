@@ -13,6 +13,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -44,69 +46,37 @@ const tooltipStyle = {
 
 type Level = 'High' | 'Medium' | 'Low'
 
-interface DemandRow {
-  rank: number
-  skill: string
-  category: string
-  requests: number
-  growth: number
-  budget: number
-  students: number
-  level: Level
-  spark: number[]
-}
-
-const ROWS: DemandRow[] = [
-  { rank: 1, skill: 'Graphic Design', category: 'Design', requests: 42, growth: 34, budget: 2400, students: 12, level: 'High', spark: [18, 22, 25, 29, 33, 38, 42] },
-  { rank: 2, skill: 'Video Editing', category: 'Media', requests: 31, growth: 28, budget: 3200, students: 7, level: 'High', spark: [12, 15, 18, 22, 25, 28, 31] },
-  { rank: 3, skill: 'Web Development', category: 'Development', requests: 27, growth: 19, budget: 8500, students: 9, level: 'High', spark: [14, 16, 18, 20, 22, 25, 27] },
-  { rank: 4, skill: 'Tutoring', category: 'Education', requests: 21, growth: 12, budget: 1600, students: 18, level: 'Medium', spark: [15, 16, 17, 18, 19, 20, 21] },
-  { rank: 5, skill: 'Photography', category: 'Media', requests: 18, growth: 15, budget: 4200, students: 6, level: 'Medium', spark: [9, 11, 12, 14, 15, 17, 18] },
-  { rank: 6, skill: 'Social Media', category: 'Marketing', requests: 16, growth: 22, budget: 2800, students: 11, level: 'Medium', spark: [7, 9, 10, 12, 13, 15, 16] },
-  { rank: 7, skill: 'Content Writing', category: 'Marketing', requests: 12, growth: 8, budget: 1900, students: 14, level: 'Medium', spark: [8, 9, 9, 10, 11, 11, 12] },
-  { rank: 8, skill: 'Data Entry', category: 'Admin', requests: 10, growth: 4, budget: 1200, students: 22, level: 'Low', spark: [8, 8, 9, 9, 9, 10, 10] },
-  { rank: 9, skill: 'Translation', category: 'Admin', requests: 8, growth: 6, budget: 2200, students: 5, level: 'Low', spark: [5, 5, 6, 6, 7, 7, 8] },
-  { rank: 10, skill: 'Computer Repair', category: 'Development', requests: 7, growth: 3, budget: 1500, students: 4, level: 'Low', spark: [5, 6, 6, 6, 7, 7, 7] },
-]
-
 const LEVEL_TONES: Record<Level, { color: string; bg: string; icon: string }> = {
   High: { color: '#B91C1C', bg: '#FEE2E2', icon: '🔥' },
   Medium: { color: '#B45309', bg: '#FEF3C7', icon: '📈' },
   Low: { color: C.muted, bg: C.subtle, icon: '•' },
 }
 
-const CATEGORIES = ['All categories', 'Design', 'Media', 'Development', 'Education', 'Marketing', 'Admin']
 const PERIODS = ['7 days', '30 days', '90 days']
 
-interface Gap {
-  name: string
-  have: boolean
-}
-
-const GAP: Gap[] = [
-  { name: 'HTML', have: true },
-  { name: 'CSS', have: true },
-  { name: 'JavaScript', have: true },
-  { name: 'React', have: false },
-  { name: 'Git', have: false },
-  { name: 'REST APIs', have: false },
-]
-
 export default function SkillDemand({ onNavigate }: PageProps) {
+  const data = useQuery(api.dashboardMock.getSkillDemand)
+  
+  const ROWS = data?.rows || []
+  const GAP = data?.gap?.map((g: any) => ({ name: g.skill, have: g.you })) || []
+  const CATEGORIES = data?.categories || ['All']
+
   const [category, setCategory] = useState(CATEGORIES[0])
   const [period, setPeriod] = useState(PERIODS[1])
 
   const rows = useMemo(
-    () => (category === CATEGORIES[0] ? ROWS : ROWS.filter((r) => r.category === category)),
-    [category],
+    () => (category === CATEGORIES[0] || category === 'All' ? ROWS : ROWS.filter((r: any) => r.category === category)),
+    [category, CATEGORIES, ROWS],
   )
 
   const top3 = ROWS.slice(0, 3)
-  const gapData = ROWS.slice(0, 6).map((r) => ({
+  const gapData = ROWS.slice(0, 6).map((r: any) => ({
     skill: r.skill.split(' ')[0],
     requests: r.requests,
     students: r.students,
   }))
+
+  if (!data) return null;
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -128,9 +98,9 @@ export default function SkillDemand({ onNavigate }: PageProps) {
         {/* --------------------------------------------------- top 3 cards */}
         <SectionTitle title="Top rising skills" subtitle="The three fastest-growing categories right now" />
         <Grid min={320} gap={18} style={{ marginBottom: 30 }}>
-          {top3.map((r) => {
-            const tone = LEVEL_TONES[r.level]
-            const sparkData = r.spark.map((v, i) => ({ i, v }))
+          {top3.map((r: any) => {
+            const tone = LEVEL_TONES[r.level as Level]
+            const sparkData = r.spark.map((v: number, i: number) => ({ i, v }))
             return (
               <Card key={r.skill} hover onClick={() => onNavigate('opportunities')} pad={20}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -254,8 +224,8 @@ export default function SkillDemand({ onNavigate }: PageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((r) => {
-                    const tone = LEVEL_TONES[r.level]
+                  {rows.map((r: any) => {
+                    const tone = LEVEL_TONES[r.level as Level]
                     return (
                       <tr key={r.skill} style={{ borderBottom: `1px solid ${C.border}` }}>
                         <td style={{ padding: '14px 18px', fontSize: 13.5, fontWeight: 800, color: C.faint }}>
@@ -353,7 +323,7 @@ export default function SkillDemand({ onNavigate }: PageProps) {
               Your Web Development stack
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-              {GAP.map((g) => (
+              {GAP.map((g: any) => (
                 <span
                   key={g.name}
                   style={{
@@ -430,7 +400,7 @@ export default function SkillDemand({ onNavigate }: PageProps) {
           <div style={{ height: 180, minWidth: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={ROWS[0].spark.map((v, i) => ({ week: `W${i + 1}`, requests: v }))}
+                data={ROWS[0]?.spark?.map((v: number, i: number) => ({ week: `W${i + 1}`, requests: v })) || []}
                 margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
               >
                 <CartesianGrid stroke={C.border} vertical={false} />

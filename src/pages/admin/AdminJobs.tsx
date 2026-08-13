@@ -2,25 +2,20 @@ import { useState } from 'react'
 import type { PageProps } from '../../types'
 import { Badge, Btn, C, Card, SearchInput, StatusBadge, rupees } from '../../components/ui'
 
-const ALL_JOBS = [
-  { id: 'J001', title: 'Robotics Exhibition Poster', student: 'Kasun Perera', requester: 'University Robotics Society', budget: 2000, status: 'In Progress', category: 'Design', created: '5 Aug', deadline: '12 Aug', flag: false },
-  { id: 'J002', title: 'Café Menu Redesign', student: 'Nimali Jayasuriya', requester: 'Kandy Hills Café', budget: 1500, status: 'Awaiting Review', category: 'Design', created: '4 Aug', deadline: '14 Aug', flag: false },
-  { id: 'J003', title: 'Physics Tuition Grade 12', student: 'Roshan Mendis', requester: 'Dinuka Bandara', budget: 3000, status: 'Completed', category: 'Tutoring', created: '1 Aug', deadline: '10 Aug', flag: false },
-  { id: 'J004', title: 'Instagram Reel Editing', student: 'Priya Wickramasinghe', requester: 'Café Brown', budget: 2500, status: 'In Progress', category: 'Video', created: '7 Aug', deadline: '11 Aug', flag: true },
-  { id: 'J005', title: 'CV & Cover Letter Design', student: 'Tharaka Silva', requester: 'Individual', budget: 1000, status: 'Pending', category: 'Design', created: '8 Aug', deadline: '16 Aug', flag: false },
-  { id: 'J006', title: 'Club T-Shirt Design', student: 'Kasun Perera', requester: 'Kandy Arts Club', budget: 2500, status: 'Completed', category: 'Design', created: '28 Jul', deadline: '5 Aug', flag: false },
-  { id: 'J007', title: 'Website Landing Page', student: 'Tharaka Silva', requester: 'StartupKandy', budget: 5000, status: 'In Progress', category: 'Web Dev', created: '3 Aug', deadline: '20 Aug', flag: true },
-  { id: 'J008', title: 'Mathematics Tutoring', student: 'Roshan Mendis', requester: 'Harsha Perera', budget: 4000, status: 'Completed', category: 'Tutoring', created: '20 Jul', deadline: '1 Aug', flag: false },
-]
-
-const CATEGORIES = ['All', 'Design', 'Video', 'Tutoring', 'Web Dev']
-const STATUSES = ['All', 'In Progress', 'Awaiting Review', 'Completed', 'Pending', 'Cancelled']
+import { useQuery } from 'convex/react'
+import { api } from '../../../convex/_generated/api'
 
 export default function AdminJobs({ onNavigate }: PageProps) {
+  const jobsData = useQuery(api.admin.getJobs)
   const [search, setSearch] = useState('')
   const [cat, setCat] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
   const [flagOnly, setFlagOnly] = useState(false)
+
+  const ALL_JOBS = jobsData || []
+  
+  const CATEGORIES = ['All', ...new Set(ALL_JOBS.map(j => j.category))]
+  const STATUSES = ['All', ...new Set(ALL_JOBS.map(j => j.status))]
 
   const filtered = ALL_JOBS.filter(j => {
     const matchSearch = j.title.toLowerCase().includes(search.toLowerCase()) || j.student.toLowerCase().includes(search.toLowerCase())

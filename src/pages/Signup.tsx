@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { PageProps } from '../types'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import {
   Badge,
   Btn,
@@ -64,6 +66,8 @@ export default function Signup({ onNavigate }: PageProps) {
     name.trim().length > 2 && email.includes('@') && phone.trim().length > 6 && password.length >= 6 &&
     location.trim().length > 2
   const canSubmit = baseOk && (role === 'requester' || uniEmailOk)
+
+  const metrics = useQuery(api.impactMetrics.getSummary)
 
   return (
     <div
@@ -175,8 +179,8 @@ export default function Signup({ onNavigate }: PageProps) {
             borderTop: '1px solid rgba(255,255,255,0.14)',
           }}
         >
-          <KPI value="47" label="Students benefited" />
-          <KPI value={rupees(72000)} label="Requester savings" />
+          <KPI value={metrics ? metrics.totalStudentsBenefited.toString() : '...'} label="Students benefited" />
+          <KPI value={metrics ? rupees(metrics.totalRequesterSavings) : '...'} label="Requester savings" />
         </div>
       </aside>
 

@@ -2,23 +2,8 @@ import { useState } from 'react'
 import type { PageProps } from '../../types'
 import { Badge, Btn, C, Card, SearchInput, StatusBadge, rupees } from '../../components/ui'
 
-const STUDENTS = [
-  { name: 'Kasun Perera', email: 'kasun@pdn.ac.lk', location: 'Peradeniya', skills: ['Graphic Design', 'Canva'], trust: 92, jobs: 18, earned: 24500, rating: 4.8, status: 'Active', joined: 'Jan 2026' },
-  { name: 'Nimali Jayasuriya', email: 'nimali@gmail.com', location: 'Kandy', skills: ['Video Editing', 'CapCut'], trust: 88, jobs: 14, earned: 19200, rating: 4.7, status: 'Active', joined: 'Feb 2026' },
-  { name: 'Roshan Mendis', email: 'roshan@pdn.ac.lk', location: 'Peradeniya', skills: ['Physics Tuition', 'Mathematics'], trust: 85, jobs: 11, earned: 15800, rating: 4.6, status: 'Active', joined: 'Mar 2026' },
-  { name: 'Tharaka Silva', email: 'tharaka@gmail.com', location: 'Kandy', skills: ['Web Dev', 'React'], trust: 82, jobs: 9, earned: 12300, rating: 4.5, status: 'Active', joined: 'Apr 2026' },
-  { name: 'Priya Wickramasinghe', email: 'priya@uok.ac.lk', location: 'Kandy', skills: ['Photography', 'Lightroom'], trust: 79, jobs: 6, earned: 8700, rating: 4.4, status: 'Active', joined: 'May 2026' },
-  { name: 'Dinesh Rajapaksa', email: 'dinesh@gmail.com', location: 'Peradeniya', skills: ['Music', 'Guitar'], trust: 45, jobs: 2, earned: 2500, rating: 3.1, status: 'Suspended', joined: 'Jun 2026' },
-  { name: 'Amara Fernando', email: 'amara@pdn.ac.lk', location: 'Peradeniya', skills: ['Graphic Design'], trust: 0, jobs: 0, earned: 0, rating: 0, status: 'Pending', joined: 'Aug 2026' },
-]
-
-const REQUESTERS = [
-  { name: 'University Robotics Society', type: 'Organization', location: 'Peradeniya', posted: 8, spent: 14500, status: 'Active', joined: 'Feb 2026' },
-  { name: 'Kandy Hills Café', type: 'Small Business', location: 'Kandy', posted: 5, spent: 7200, status: 'Active', joined: 'Mar 2026' },
-  { name: 'Dinuka Bandara', type: 'Individual', location: 'Peradeniya', posted: 3, spent: 9000, status: 'Active', joined: 'Apr 2026' },
-  { name: 'Kandy Arts Club', type: 'Organization', location: 'Kandy', posted: 2, spent: 3000, status: 'Active', joined: 'May 2026' },
-  { name: 'Fake Business LLC', type: 'Business', location: 'Unknown', posted: 0, spent: 0, status: 'Suspended', joined: 'Jul 2026' },
-]
+import { useQuery } from 'convex/react'
+import { api } from '../../../convex/_generated/api'
 
 function AvatarCell({ name }: { name: string }) {
   const initials = name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
@@ -42,6 +27,10 @@ function TrustBadge({ score }: { score: number }) {
 type Tab = 'students' | 'requesters'
 
 export default function AdminUsers({ onNavigate }: PageProps) {
+  const usersData = useQuery(api.admin.getUsers)
+  const STUDENTS = usersData?.students || []
+  const REQUESTERS = usersData?.requesters || []
+
   const [tab, setTab] = useState<Tab>('students')
   const [search, setSearch] = useState('')
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { PageProps } from '../../types'
 import {
   Area,
   AreaChart,
@@ -8,29 +9,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { PageProps } from '../../types'
 import { Badge, Btn, C, Card, Grid, SectionTitle, rupees } from '../../components/ui'
 
-const TRANSACTIONS = [
-  { id: 'TXN-0012', job: 'Robotics Exhibition Poster', student: 'Kasun Perera', requester: 'Uni Robotics', amount: 2000, fee: 200, net: 1800, date: '10 Aug 2026', status: 'Released' },
-  { id: 'TXN-0011', job: 'Physics Tuition Grade 12', student: 'Roshan Mendis', requester: 'Dinuka Bandara', amount: 3000, fee: 300, net: 2700, date: '9 Aug 2026', status: 'Released' },
-  { id: 'TXN-0010', job: 'Club T-Shirt Design', student: 'Kasun Perera', requester: 'Kandy Arts Club', amount: 2500, fee: 250, net: 2250, date: '8 Aug 2026', status: 'Released' },
-  { id: 'TXN-0009', job: 'Mathematics Tutoring', student: 'Roshan Mendis', requester: 'Harsha Perera', amount: 4000, fee: 400, net: 3600, date: '5 Aug 2026', status: 'Released' },
-  { id: 'TXN-0008', job: 'Café Menu Redesign', student: 'Nimali Jayasuriya', requester: 'Kandy Hills Café', amount: 1500, fee: 150, net: 1350, date: '—', status: 'Escrowed' },
-  { id: 'TXN-0007', job: 'Instagram Reel Editing', student: 'Priya Wickramasinghe', requester: 'Café Brown', amount: 2500, fee: 250, net: 2250, date: '—', status: 'Escrowed' },
-  { id: 'TXN-0006', job: 'Website Landing Page', student: 'Tharaka Silva', requester: 'StartupKandy', amount: 5000, fee: 500, net: 4500, date: '—', status: 'Escrowed' },
-  { id: 'TXN-0005', job: 'CV & Cover Letter', student: 'Tharaka Silva', requester: 'Individual', amount: 1000, fee: 100, net: 900, date: '—', status: 'Pending Payout' },
-]
-
-const WEEKLY = [
-  { day: 'Mon', released: 5500, escrowed: 2000 },
-  { day: 'Tue', released: 9000, escrowed: 3500 },
-  { day: 'Wed', released: 7200, escrowed: 5000 },
-  { day: 'Thu', released: 11000, escrowed: 4500 },
-  { day: 'Fri', released: 14500, escrowed: 8500 },
-  { day: 'Sat', released: 8000, escrowed: 2500 },
-  { day: 'Sun', released: 4200, escrowed: 1000 },
-]
+import { useQuery } from 'convex/react'
+import { api } from '../../../convex/_generated/api'
 
 const STATUS_COLOR: Record<string, { color: string; bg: string }> = {
   Released: { color: '#15803D', bg: '#DCFCE7' },
@@ -46,7 +28,14 @@ function TxnBadge({ status }: { status: string }) {
   )
 }
 
-export default function AdminPayments({ onNavigate: _onNavigate }: PageProps) {
+export default function AdminPayments(_props: PageProps) {
+  void _props
+  const transactionsData = useQuery(api.admin.getPayments)
+  const weeklyData = useQuery(api.admin.getWeeklyCashFlow)
+  
+  const TRANSACTIONS = transactionsData || []
+  const WEEKLY = weeklyData || []
+
   const [filter, setFilter] = useState('All')
 
   const totalReleased = TRANSACTIONS.filter(t => t.status === 'Released').reduce((s, t) => s + t.amount, 0)
@@ -109,7 +98,7 @@ export default function AdminPayments({ onNavigate: _onNavigate }: PageProps) {
               <CartesianGrid stroke={C.subtle} vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-              <Tooltip formatter={(v: any) => rupees(Number(v))} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
+              <Tooltip formatter={(v: unknown) => rupees(Number(v ?? 0))} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
               <Area type="monotone" dataKey="released" stroke={C.success} strokeWidth={2} fill="url(#relGrad)" name="Released" />
               <Area type="monotone" dataKey="escrowed" stroke="#1D4ED8" strokeWidth={2} fill="url(#escGrad)" name="Escrowed" />
             </AreaChart>

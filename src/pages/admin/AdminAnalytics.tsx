@@ -15,40 +15,8 @@ import {
 import type { PageProps } from '../../types'
 import { AICallout, Btn, C, Card, Grid, rupees, SectionTitle } from '../../components/ui'
 
-const GROWTH = [
-  { month: 'Mar', students: 820, jobs: 38, volume: 42000 },
-  { month: 'Apr', students: 940, jobs: 52, volume: 58000 },
-  { month: 'May', students: 1020, jobs: 67, volume: 71000 },
-  { month: 'Jun', students: 1100, jobs: 61, volume: 65000 },
-  { month: 'Jul', students: 1190, jobs: 82, volume: 88000 },
-  { month: 'Aug', students: 1284, jobs: 87, volume: 112000 },
-]
-
-const SKILL_DEMAND = [
-  { skill: 'Graphic Design', demand: 94, supply: 58, gap: 36 },
-  { skill: 'Video Editing', demand: 76, supply: 42, gap: 34 },
-  { skill: 'Web Dev', demand: 68, supply: 31, gap: 37 },
-  { skill: 'Photography', demand: 55, supply: 49, gap: 6 },
-  { skill: 'Tutoring', demand: 88, supply: 72, gap: 16 },
-  { skill: 'Music', demand: 32, supply: 28, gap: 4 },
-]
-
-const CATEGORY_MIX = [
-  { name: 'Design', value: 42, fill: C.primary },
-  { name: 'Tutoring', value: 28, fill: C.accent },
-  { name: 'Video', value: 14, fill: '#7C3AED' },
-  { name: 'Web Dev', value: 11, fill: C.warning },
-  { name: 'Other', value: 5, fill: C.faint },
-]
-
-const GEO = [
-  { location: 'Peradeniya', students: 412, jobs: 38, volume: 48000 },
-  { location: 'Kandy City', students: 318, jobs: 29, volume: 35000 },
-  { location: 'Katugastota', students: 187, jobs: 11, volume: 14000 },
-  { location: 'Gatambe', students: 142, jobs: 6, volume: 8500 },
-  { location: 'Digana', students: 98, jobs: 3, volume: 4200 },
-  { location: 'Other', students: 127, jobs: 0, volume: 0 },
-]
+import { useQuery } from 'convex/react'
+import { api } from '../../../convex/_generated/api'
 
 const AI_STATS = [
   { label: 'Matches Generated', value: '3,841', delta: '+318 this month' },
@@ -58,6 +26,11 @@ const AI_STATS = [
 ]
 
 export default function AdminAnalytics({ onNavigate }: PageProps) {
+  const analyticsData = useQuery(api.admin.getAnalytics)
+  const GROWTH = analyticsData?.growth || []
+  const SKILL_DEMAND = analyticsData?.skillDemand || []
+  const CATEGORY_MIX = analyticsData?.categoryMix || []
+  const GEO = analyticsData?.geo || []
   return (
     <div style={{ padding: '28px 32px 80px', maxWidth: 1100 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
@@ -136,7 +109,7 @@ export default function AdminAnalytics({ onNavigate }: PageProps) {
                 <Pie data={CATEGORY_MIX} cx="50%" cy="50%" innerRadius={52} outerRadius={78} paddingAngle={3} dataKey="value">
                   {CATEGORY_MIX.map((c) => <Cell key={c.name} fill={c.fill} />)}
                 </Pie>
-                <Tooltip formatter={(v: any) => `${v}%`} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                <Tooltip formatter={(v: unknown) => `${Number(v ?? 0)}%`} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
               </PieChart>
             </ResponsiveContainer>
           </div>

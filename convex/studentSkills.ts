@@ -1,4 +1,5 @@
 import { mutation, query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { getCurrentUserOrThrow } from "./users";
@@ -11,7 +12,7 @@ const PROFICIENCY = v.union(
 );
 
 async function joinSkills(
-  ctx: any,
+  ctx: QueryCtx,
   links: Doc<"studentSkills">[],
 ): Promise<(Doc<"studentSkills"> & { skill: Doc<"skills"> | null })[]> {
   return await Promise.all(

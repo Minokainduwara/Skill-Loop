@@ -8,10 +8,13 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
 import type * as aiRequirements from "../aiRequirements.js";
 import type * as applications from "../applications.js";
+import type * as dashboardMock from "../dashboardMock.js";
 import type * as demandSignals from "../demandSignals.js";
 import type * as earnings from "../earnings.js";
+import type * as frontend from "../frontend.js";
 import type * as http from "../http.js";
 import type * as impactMetrics from "../impactMetrics.js";
 import type * as jobDeliverables from "../jobDeliverables.js";
@@ -54,10 +57,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
   aiRequirements: typeof aiRequirements;
   applications: typeof applications;
+  dashboardMock: typeof dashboardMock;
   demandSignals: typeof demandSignals;
   earnings: typeof earnings;
+  frontend: typeof frontend;
   http: typeof http;
   impactMetrics: typeof impactMetrics;
   jobDeliverables: typeof jobDeliverables;

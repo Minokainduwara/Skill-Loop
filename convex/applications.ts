@@ -1,7 +1,9 @@
 import { mutation, query } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow } from "./users";
-import { requireRole } from "./lib/roles";
+import { requireAnyRole, requireRole } from "./lib/roles";
 import { notify } from "./lib/notify";
 
 /** All applications for a request (requester/admin view). */
@@ -130,7 +132,7 @@ export const accept = mutation({
     agreedPrice: v.optional(v.number()),
   },
   handler: async (ctx, { applicationId, agreedPrice }) => {
-    const user = await requireRole(ctx, "requester");
+    const user = await requireAnyRole(ctx, ["requester", "admin"]);
     const app = await ctx.db.get("applications", applicationId);
     if (!app) throw new Error("Application not found");
     const request = await ctx.db.get("jobRequests", app.jobRequestId);
@@ -194,8 +196,8 @@ export const accept = mutation({
   },
 });
 
-async function ownedByRequester(ctx: any, applicationId: string) {
-  const user = await requireRole(ctx, "requester");
+async function ownedByRequester(ctx: MutationCtx, applicationId: Id<"applications">) {
+  const user = await requireAnyRole(ctx, ["requester", "admin"]);
   const app = await ctx.db.get("applications", applicationId);
   if (!app) throw new Error("Application not found");
   const request = await ctx.db.get("jobRequests", app.jobRequestId);

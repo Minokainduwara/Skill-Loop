@@ -1,5 +1,7 @@
-import { useState } from 'react'
+
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useQuery, useMutation } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -18,31 +20,16 @@ import {
   rupees,
 } from '../components/ui'
 
-interface Req {
-  title: string
-  budget: number
-  requester: string
-  distance: string
-  deadline: string
-}
-
-const REQUESTS: Req[] = [
-  { title: 'Event poster', budget: 2000, requester: 'Student society', distance: '0.6 km · Peradeniya', deadline: 'In 3 days' },
-  { title: 'Restaurant menu', budget: 1500, requester: 'Small business', distance: '2.9 km · Kandy', deadline: 'In 5 days' },
-  { title: 'Birthday invitation', budget: 800, requester: 'Individual', distance: '1.1 km · Gatambe', deadline: 'This weekend' },
-  { title: 'CV design', budget: 1000, requester: 'Individual', distance: '0.4 km · Peradeniya', deadline: 'In 4 days' },
-  { title: 'Social media post', budget: 1200, requester: 'Home baker', distance: '3.2 km · Kandy', deadline: 'In 2 days' },
-  { title: 'Club t-shirt design', budget: 2500, requester: 'University club', distance: '0.9 km · Campus', deadline: 'In 1 week' },
-  { title: 'Lecture slide template', budget: 1500, requester: 'Lecturer', distance: '0.3 km · Faculty of Science', deadline: 'In 6 days' },
-]
-
-const SKILLS = ['Graphic Design', 'Canva', 'Adobe Illustrator', 'Typography', 'Print Layout', 'Branding']
-
 export default function DemandCluster({ onNavigate }: PageProps) {
-  const [interested, setInterested] = useState(false)
+  const data = useQuery(api.dashboardMock.getClusterDetails, {})
+  const interested = useQuery(api.dashboardMock.getInterestState, {}) || false
+  const expressInterest = useMutation(api.dashboardMock.expressInterest)
 
-  const total = REQUESTS.reduce((s, r) => s + r.budget, 0)
-  const chartData = REQUESTS.map((r) => ({
+  const REQUESTS = data?.requests || []
+  const SKILLS = data?.skills || []
+
+  const total = REQUESTS.reduce((s: any, r: any) => s + r.budget, 0)
+  const chartData = REQUESTS.map((r: any) => ({
     name: r.title.split(' ')[0],
     value: r.budget,
     fill: r.budget >= 2000 ? C.primary : r.budget >= 1200 ? '#7C3AED' : C.accent,
@@ -80,7 +67,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
             subtitle="Every request below can be claimed individually"
           />
           <div style={{ display: 'grid', gap: 12 }}>
-            {REQUESTS.map((r, i) => (
+            {REQUESTS.map((r: any, i: number) => (
               <div key={r.title} className="sl-rise" style={{ animationDelay: `${i * 45}ms` }}>
                 <Card hover pad={18}>
                   <div
@@ -139,7 +126,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
 
           <SectionTitle title="Required skills" subtitle="Matched against your verified skill profile" />
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-            {SKILLS.map((s, i) => (
+            {SKILLS.map((s: string, i: number) => (
               <SkillChip key={s} label={s} active={i < 4} />
             ))}
           </div>
@@ -166,7 +153,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                     contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }}
                   />
                   <Bar dataKey="value" radius={[7, 7, 0, 0]}>
-                    {chartData.map((d) => (
+                    {chartData.map((d: any) => (
                       <Cell key={d.name} fill={d.fill} />
                     ))}
                   </Bar>
@@ -245,7 +232,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                   </div>
                 ) : (
                   <div style={{ display: 'grid', gap: 10 }}>
-                    <Btn size="lg" full onClick={() => setInterested(true)}>
+                    <Btn size="lg" full onClick={() => expressInterest({})}>
                       {"I'm Interested"}
                     </Btn>
                     <Btn variant="secondary" full onClick={() => onNavigate('messages')}>

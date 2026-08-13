@@ -12,39 +12,8 @@ import {
 import type { PageProps } from '../../types'
 import { AICallout, Btn, C, Card, Grid, rupees, SectionTitle, StatusBadge } from '../../components/ui'
 
-const WEEKLY_JOBS = [
-  { day: 'Mon', posted: 12, completed: 8 },
-  { day: 'Tue', posted: 18, completed: 11 },
-  { day: 'Wed', posted: 14, completed: 13 },
-  { day: 'Thu', posted: 22, completed: 15 },
-  { day: 'Fri', posted: 28, completed: 19 },
-  { day: 'Sat', posted: 16, completed: 14 },
-  { day: 'Sun', posted: 9, completed: 7 },
-]
-
-const VOLUME_TREND = [
-  { month: 'Mar', value: 42000 },
-  { month: 'Apr', value: 58000 },
-  { month: 'May', value: 71000 },
-  { month: 'Jun', value: 65000 },
-  { month: 'Jul', value: 88000 },
-  { month: 'Aug', value: 112000 },
-]
-
-const RECENT_JOBS = [
-  { title: 'Event Poster Design', student: 'Kasun Perera', requester: 'Student Society', budget: 2000, status: 'In Progress' },
-  { title: 'Restaurant Menu Layout', student: 'Nimali J.', requester: 'Kandy Hills Café', budget: 1500, status: 'Awaiting Review' },
-  { title: 'Physics Tuition Grade 12', student: 'Roshan M.', requester: 'Dinuka Bandara', budget: 3000, status: 'Completed' },
-  { title: 'CV & Cover Letter', student: 'Tharaka S.', requester: 'Individual', budget: 1000, status: 'In Progress' },
-  { title: 'Instagram Reel Edit', student: 'Priya W.', requester: 'Café Brown', budget: 2500, status: 'Pending' },
-]
-
-const TOP_STUDENTS = [
-  { name: 'Kasun Perera', jobs: 18, earned: 24500, trust: 92, rating: 4.8 },
-  { name: 'Nimali Jayasuriya', jobs: 14, earned: 19200, trust: 88, rating: 4.7 },
-  { name: 'Roshan Mendis', jobs: 11, earned: 15800, trust: 85, rating: 4.6 },
-  { name: 'Tharaka Silva', jobs: 9, earned: 12300, trust: 82, rating: 4.5 },
-]
+import { useQuery } from 'convex/react'
+import { api } from '../../../convex/_generated/api'
 
 function KPICard({ icon, label, value, delta, tone }: { icon: string; label: string; value: string; delta?: string; tone?: string }) {
   return (
@@ -64,6 +33,21 @@ function KPICard({ icon, label, value, delta, tone }: { icon: string; label: str
 }
 
 export default function AdminDashboard({ onNavigate }: PageProps) {
+  const dashboardData = useQuery(api.admin.getDashboardSummary)
+  
+  const WEEKLY_JOBS = dashboardData?.weeklyJobs || []
+  const RECENT_JOBS = dashboardData?.recentJobs || []
+  const TOP_STUDENTS = dashboardData?.topStudents || []
+  
+  const VOLUME_TREND = [
+    { month: 'Mar', value: 42000 },
+    { month: 'Apr', value: 58000 },
+    { month: 'May', value: 71000 },
+    { month: 'Jun', value: 65000 },
+    { month: 'Jul', value: 88000 },
+    { month: 'Aug', value: dashboardData?.volumeTransacted || 112000 },
+  ]
+
   return (
     <div style={{ padding: '28px 32px 80px', maxWidth: 1100 }}>
       {/* Header */}
@@ -80,10 +64,10 @@ export default function AdminDashboard({ onNavigate }: PageProps) {
 
       {/* KPIs */}
       <Grid min={200} gap={14} style={{ marginBottom: 24 }}>
-        <KPICard icon="👥" label="Total Students" value="1,284" delta="+48" tone={C.primary} />
-        <KPICard icon="🏪" label="Requesters" value="342" delta="+12" tone="#7C3AED" />
-        <KPICard icon="💼" label="Active Jobs" value="87" delta="+23" tone={C.accent} />
-        <KPICard icon="💰" label="Volume Transacted" value={rupees(112000)} delta={rupees(24000)} tone={C.success} />
+        <KPICard icon="👥" label="Total Students" value={(dashboardData?.totalStudents ?? 1284).toLocaleString()} delta="+48" tone={C.primary} />
+        <KPICard icon="🏪" label="Requesters" value={(dashboardData?.totalRequesters ?? 342).toLocaleString()} delta="+12" tone="#7C3AED" />
+        <KPICard icon="💼" label="Active Jobs" value={(dashboardData?.activeJobs ?? 87).toLocaleString()} delta="+23" tone={C.accent} />
+        <KPICard icon="💰" label="Volume Transacted" value={rupees(dashboardData?.volumeTransacted ?? 112000)} delta={rupees(24000)} tone={C.success} />
       </Grid>
       <Grid min={200} gap={14} style={{ marginBottom: 28 }}>
         <KPICard icon="🤝" label="AI Matches Made" value="3,841" delta="+318" />
@@ -132,7 +116,7 @@ export default function AdminDashboard({ onNavigate }: PageProps) {
                 <CartesianGrid stroke={C.subtle} vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: C.muted }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip formatter={(v: any) => rupees(Number(v))} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                <Tooltip formatter={(v: unknown) => rupees(Number(v ?? 0))} contentStyle={{ borderRadius: 12, border: `1px solid ${C.border}`, fontSize: 12 }} />
                 <Area type="monotone" dataKey="value" stroke={C.accent} strokeWidth={2.5} fill="url(#volGrad)" name="Volume" />
               </AreaChart>
             </ResponsiveContainer>

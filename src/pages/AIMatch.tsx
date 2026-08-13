@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -21,83 +23,7 @@ import {
   rupees,
 } from '../components/ui'
 
-const REQUIRED_SKILLS = ['Graphic Design', 'Canva', 'Social Media', 'Poster Design']
 
-interface Candidate {
-  id: string
-  rank: number
-  name: string
-  program: string
-  match: number
-  skill: number
-  availability: number
-  experience: number
-  ratingScore: number
-  rating: number
-  jobs: number
-  onTime: number
-  response: string
-  earned: number
-  skills: string[]
-  note: string
-}
-
-const CANDIDATES: Candidate[] = [
-  {
-    id: 'c1',
-    rank: 1,
-    name: 'Kasun Perera',
-    program: 'ICT Undergraduate · University of Peradeniya',
-    match: 96,
-    skill: 100,
-    availability: 95,
-    experience: 90,
-    ratingScore: 96,
-    rating: 4.8,
-    jobs: 18,
-    onTime: 100,
-    response: '12 min',
-    earned: 24500,
-    skills: ['Graphic Design', 'Canva', 'Poster Design', 'Social Media'],
-    note: 'Every required skill verified, 5 posters delivered in the last 3 months, 2.4 km from campus.',
-  },
-  {
-    id: 'c2',
-    rank: 2,
-    name: 'Nimal Silva',
-    program: 'Fine Arts Undergraduate · University of Kelaniya',
-    match: 89,
-    skill: 92,
-    availability: 88,
-    experience: 85,
-    ratingScore: 92,
-    rating: 4.6,
-    jobs: 12,
-    onTime: 92,
-    response: '35 min',
-    earned: 16200,
-    skills: ['Graphic Design', 'Illustration', 'Canva'],
-    note: 'Strongest illustration portfolio, slightly less print-production experience than the top match.',
-  },
-  {
-    id: 'c3',
-    rank: 3,
-    name: 'Sahan Fernando',
-    program: 'Media Studies Undergraduate · University of Colombo',
-    match: 84,
-    skill: 86,
-    availability: 80,
-    experience: 78,
-    ratingScore: 90,
-    rating: 4.5,
-    jobs: 9,
-    onTime: 89,
-    response: '1 hr',
-    earned: 11800,
-    skills: ['Social Media', 'Canva', 'Content Writing'],
-    note: 'Excellent social-first designer; located in Colombo so printing coordination is remote.',
-  },
-]
 
 const MEDALS: Record<number, { emoji: string; bg: string; color: string }> = {
   1: { emoji: '🥇', bg: '#FEF3C7', color: '#B45309' },
@@ -115,6 +41,9 @@ const FACTORS = [
 export default function AIMatch({ onNavigate }: PageProps) {
   const [expanded, setExpanded] = useState('c1')
   const [assigned, setAssigned] = useState<string | null>(null)
+
+  const CANDIDATES = useQuery(api.dashboardMock.getBestCandidates, {}) || []
+  const REQUIRED_SKILLS = useQuery(api.dashboardMock.getJobRequirements, {}) || []
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -206,8 +135,8 @@ export default function AIMatch({ onNavigate }: PageProps) {
         />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 30 }}>
-          {CANDIDATES.map((c, i) => {
-            const medal = MEDALS[c.rank]
+          {CANDIDATES.map((c: any, i: number) => {
+            const medal = MEDALS[c.rank] || MEDALS[3]
             const open = expanded === c.id
             const isAssigned = assigned === c.id
             return (
@@ -303,7 +232,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
                           />
                         </div>
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                          {c.skills.map((s) => (
+                          {c.skills?.map((s: string) => (
                             <span
                               key={s}
                               style={{

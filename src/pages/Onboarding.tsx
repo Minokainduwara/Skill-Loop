@@ -21,23 +21,6 @@ import {
   USER,
 } from '../components/ui'
 
-const SKILLS = [
-  'Web Development',
-  'Graphic Design',
-  'UI/UX',
-  'Video Editing',
-  'Photography',
-  'Programming',
-  'Tutoring',
-  'Writing',
-  'Translation',
-  'Data Entry',
-  'Electronics',
-  'Computer Repair',
-  'Social Media',
-  'Marketing',
-]
-
 const AVAILABILITY: { key: string; icon: string; sub: string }[] = [
   { key: 'Weekday mornings', icon: '🌅', sub: 'Before 12 pm, Mon–Fri' },
   { key: 'Weekday evenings', icon: '🌆', sub: 'After 5 pm, Mon–Fri' },
@@ -139,7 +122,7 @@ export default function Onboarding({ onNavigate }: PageProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const allSkills = [...SKILLS, ...extra]
+  const allSkills = [...(taxonomy ?? []).map((skill) => skill.name), ...extra]
 
   const toggle = (list: string[], set: (v: string[]) => void, v: string) =>
     set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v])

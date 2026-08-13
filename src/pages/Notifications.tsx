@@ -175,13 +175,16 @@ const PREFS: Pref[] = [
 ]
 
 export default function Notifications({ onNavigate }: PageProps) {
+  // Kept only until the fixture block is removed; notifications are never rendered from it.
+  void BASE
   const notifications = useQuery(api.notifications.listMine, {})
   const markReadMutation = useMutation(api.notifications.markRead)
   const markAllReadMutation = useMutation(api.notifications.markAllRead)
   const [tab, setTab] = useState('all')
   const [prefs, setPrefs] = useState<Pref[]>(PREFS)
-  const notes = useMemo<Note[]>(() => notifications === undefined ? BASE : notifications.map((notification) => {
-    const age = Date.now() - notification.createdAt
+  const [renderedAt] = useState(() => Date.now())
+  const notes = useMemo<Note[]>(() => notifications === undefined ? [] : notifications.map((notification) => {
+    const age = renderedAt - notification.createdAt
     const bucket: Bucket = age < 86_400_000 ? 'Today' : age < 172_800_000 ? 'Yesterday' : 'Earlier'
     const category: Category = notification.type === 'payment' ? 'payments' : notification.type === 'review' ? 'social' : 'opportunities'
     const action: Note['action'] = notification.relatedJobId
@@ -201,7 +204,7 @@ export default function Notifications({ onNavigate }: PageProps) {
       bucket,
       action,
     }
-  }), [notifications])
+  }), [notifications, renderedAt])
 
   const unreadCount = notes.filter((n) => n.unread).length
 

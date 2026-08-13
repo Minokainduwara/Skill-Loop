@@ -45,6 +45,14 @@ export const get = query({
   },
 });
 
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireRole(ctx, "admin");
+    return await ctx.db.query("jobs").collect();
+  }
+});
+
 /** Student starts work on an assigned job. */
 export const start = mutation({
   args: { jobId: v.id("jobs") },
