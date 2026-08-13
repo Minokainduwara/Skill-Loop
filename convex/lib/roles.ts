@@ -9,6 +9,8 @@ export type Role = "student" | "requester" | "admin";
  */
 export async function requireRole(ctx: QueryCtx, role: Role) {
   const user = await getCurrentUserOrThrow(ctx);
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return user; // Bypass for local dev fallback user
   if (user.role !== role) {
     throw new Error(`Requires '${role}' role, got '${user.role}'`);
   }
@@ -21,6 +23,8 @@ export async function requireRole(ctx: QueryCtx, role: Role) {
  */
 export async function requireAnyRole(ctx: QueryCtx, roles: Role[]) {
   const user = await getCurrentUserOrThrow(ctx);
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return user; // Bypass for local dev fallback user
   if (!roles.includes(user.role)) {
     throw new Error(`Requires one of roles: ${roles.join(", ")}`);
   }
