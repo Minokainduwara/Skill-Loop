@@ -32,7 +32,7 @@ import AdminJobs from './pages/admin/AdminJobs'
 import AdminPayments from './pages/admin/AdminPayments'
 import AdminAnalytics from './pages/admin/AdminAnalytics'
 
-const FULLSCREEN: Page[] = ['login', 'signup', 'onboarding']
+const FULLSCREEN: Page[] = ['login', 'signup']
 const ADMIN_PAGES: Page[] = ['admin-dashboard', 'admin-users', 'admin-jobs', 'admin-payments', 'admin-analytics']
 
 export default function App() {

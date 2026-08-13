@@ -382,9 +382,9 @@ export default function Onboarding({ onNavigate }: PageProps) {
               >
                 <Btn
                   variant="ghost"
-                  onClick={() => (step === 1 ? onNavigate('signup') : setStep((s) => s - 1))}
+                  onClick={() => (step === 1 ? onNavigate('dashboard') : setStep((s) => s - 1))}
                 >
-                  ← {step === 1 ? 'Back to signup' : 'Back'}
+                  ← Back
                 </Btn>
                 {step < 3 ? (
                   <Btn size="lg" disabled={!stepValid} onClick={() => setStep((s) => s + 1)}>
