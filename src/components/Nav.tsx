@@ -28,6 +28,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
     { key: 'messages', label: 'Messages' },
     { key: 'earnings', label: 'Earnings' },
     ...(currentUser?.role === 'requester' ? [] : [{ key: 'portfolio' as Page, label: 'Portfolio' }]),
+    { key: 'onboarding', label: 'Build My Profile' },
   ]
 
   useEffect(() => {
@@ -69,7 +70,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
           gap: 20,
         }}
       >
-        <div style={{ cursor: 'pointer' }} onClick={() => go(authed ? (currentUser?.role === 'requester' ? 'requester-dashboard' : 'dashboard') : 'landing')}>
+        <div style={{ cursor: 'pointer' }} onClick={() => go('landing')}>
           <Logo />
         </div>
 
