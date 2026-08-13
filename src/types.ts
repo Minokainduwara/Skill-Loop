@@ -27,13 +27,20 @@ export type Page =
   | 'admin-payments'
   | 'admin-analytics'
 
-export type Navigate = (page: Page) => void
+export type Navigate = (
+  page: Page,
+  extra?: { opportunityId?: string; jobId?: string; studentId?: string }
+) => void
 
 export interface PageProps {
   onNavigate: Navigate
+  selectedOpportunityId?: string | null
+  selectedJobId?: string | null
+  selectedStudentId?: string | null
 }
 
 export interface NavProps {
   onNavigate: Navigate
   currentPage: Page
 }
+

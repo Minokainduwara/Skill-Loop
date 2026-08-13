@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
+import type { Id } from '../../convex/_generated/dataModel'
 import {
-  AICallout,
   Avatar,
   BRAND_GRADIENT,
   Badge,
@@ -19,7 +21,6 @@ import {
   SkillChip,
   Stars,
   Tabs,
-  USER,
   Verified,
   rupees,
 } from '../components/ui'
@@ -59,167 +60,7 @@ const EXPERIENCE: Experience[] = [
   },
 ]
 
-interface Lang {
-  name: string
-  level: string
-  value: number
-}
 
-const LANGUAGES: Lang[] = [
-  { name: 'Sinhala', level: 'Native', value: 100 },
-  { name: 'English', level: 'Professional', value: 88 },
-  { name: 'Tamil', level: 'Conversational', value: 62 },
-]
-
-const ACHIEVEMENTS = [
-  { icon: '🏆', label: 'Top Rated', tone: '#F59E0B' },
-  { icon: '⚡', label: 'Fast Responder', tone: '#4F46E5' },
-  { icon: '📦', label: '10+ Jobs', tone: '#14B8A6' },
-  { icon: '✓', label: 'Verified Student', tone: '#0E7490' },
-]
-
-interface Skill {
-  name: string
-  value: number
-  endorsed: number
-}
-
-interface SkillGroup {
-  category: string
-  emoji: string
-  skills: Skill[]
-}
-
-const SKILL_GROUPS: SkillGroup[] = [
-  {
-    category: 'Design',
-    emoji: '🎨',
-    skills: [
-      { name: 'Graphic Design', value: 95, endorsed: 14 },
-      { name: 'Canva', value: 92, endorsed: 12 },
-      { name: 'Photoshop', value: 85, endorsed: 9 },
-      { name: 'Illustrator', value: 78, endorsed: 6 },
-    ],
-  },
-  {
-    category: 'Media',
-    emoji: '🎬',
-    skills: [{ name: 'Video Editing', value: 74, endorsed: 5 }],
-  },
-  {
-    category: 'Development',
-    emoji: '💻',
-    skills: [
-      { name: 'Web Development', value: 68, endorsed: 3 },
-      { name: 'React', value: 55, endorsed: 1 },
-    ],
-  },
-  {
-    category: 'Teaching',
-    emoji: '📚',
-    skills: [{ name: 'Tutoring', value: 80, endorsed: 7 }],
-  },
-]
-
-interface Work {
-  title: string
-  client: string
-  skills: string[]
-  rating: number
-  date: string
-  earned: number
-  emoji: string
-  gradient: string
-}
-
-const WORKS: Work[] = [
-  {
-    title: 'Robotics Exhibition Poster',
-    client: 'University Robotics Society',
-    skills: ['Graphic Design', 'Canva'],
-    rating: 5,
-    date: 'Jul 2026',
-    earned: 2000,
-    emoji: '🤖',
-    gradient: 'linear-gradient(135deg,#4F46E5,#14B8A6)',
-  },
-  {
-    title: 'Spice Kitchen Menu Redesign',
-    client: 'Kandy Spice Kitchen',
-    skills: ['Illustrator', 'Print'],
-    rating: 5,
-    date: 'Jun 2026',
-    earned: 3500,
-    emoji: '🍛',
-    gradient: 'linear-gradient(135deg,#F59E0B,#EF4444)',
-  },
-  {
-    title: 'Lecture Series Promo Reel',
-    client: 'Dr. Anura Rajapaksa',
-    skills: ['Video Editing', 'Motion'],
-    rating: 4,
-    date: 'May 2026',
-    earned: 4200,
-    emoji: '🎬',
-    gradient: 'linear-gradient(135deg,#7C3AED,#4F46E5)',
-  },
-  {
-    title: 'Boutique Instagram Kit',
-    client: 'Nimali Jayasuriya',
-    skills: ['Canva', 'Social Media'],
-    rating: 5,
-    date: 'Apr 2026',
-    earned: 1800,
-    emoji: '👗',
-    gradient: 'linear-gradient(135deg,#14B8A6,#0F766E)',
-  },
-]
-
-interface Review {
-  name: string
-  job: string
-  rating: number
-  quote: string
-  date: string
-  helpful: number
-}
-
-const REVIEWS: Review[] = [
-  {
-    name: 'University Robotics Society',
-    job: 'Robotics Exhibition Poster',
-    rating: 5,
-    quote: 'Excellent work and delivered before the deadline. Kasun understood the brief on the first try.',
-    date: '2 days ago',
-    helpful: 12,
-  },
-  {
-    name: 'Kandy Spice Kitchen',
-    job: 'Spice Kitchen Menu Redesign',
-    rating: 5,
-    quote:
-      'Our new menu looks like it came from a Colombo agency. Customers actually commented on the design.',
-    date: '3 weeks ago',
-    helpful: 9,
-  },
-  {
-    name: 'Dr. Anura Rajapaksa',
-    job: 'Lecture Series Promo Reel',
-    rating: 4,
-    quote:
-      'Very good editing and clear communication throughout. One round of revisions was needed on the intro titles.',
-    date: '1 month ago',
-    helpful: 6,
-  },
-  {
-    name: 'Nimali Jayasuriya',
-    job: 'Boutique Instagram Kit',
-    rating: 5,
-    quote: 'Fast, polite and creative. He suggested a minimal version that worked far better than my idea.',
-    date: '2 months ago',
-    helpful: 15,
-  },
-]
 
 const DISTRIBUTION: { stars: number; count: number }[] = [
   { stars: 5, count: 14 },
@@ -229,19 +70,51 @@ const DISTRIBUTION: { stars: number; count: number }[] = [
   { stars: 1, count: 0 },
 ]
 
-const AVAILABILITY = [
-  { day: 'Mon', slot: 'Evening' },
-  { day: 'Tue', slot: 'Evening' },
-  { day: 'Wed', slot: '—' },
-  { day: 'Thu', slot: 'Evening' },
-  { day: 'Fri', slot: 'Evening' },
-  { day: 'Sat', slot: 'Full day' },
-  { day: 'Sun', slot: 'Full day' },
-]
 
-export default function Profile({ onNavigate }: PageProps) {
+
+export default function Profile({ onNavigate, selectedStudentId }: PageProps) {
   const [tab, setTab] = useState('about')
-  const totalReviews = DISTRIBUTION.reduce((a, d) => a + d.count, 0)
+
+  const selfProfile = useQuery(api.queries.myStudentProfile)
+  const userId = selectedStudentId || selfProfile?.user?._id
+
+  const profileBundle = useQuery(
+    api.queries.studentProfile,
+    userId ? { studentId: userId as Id<'users'> } : 'skip'
+  )
+
+  const loading = selfProfile === undefined || (userId !== undefined && profileBundle === undefined)
+
+  if (loading) {
+    return (
+      <Shell>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', fontSize: 16, color: C.muted }}>
+          Loading profile...
+        </div>
+      </Shell>
+    )
+  }
+
+  if (!profileBundle) {
+    return (
+      <Shell>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', fontSize: 16, color: C.muted }}>
+          Profile not found.
+        </div>
+      </Shell>
+    )
+  }
+
+  const { user, profile, skills, portfolios, reviews } = profileBundle
+
+  const name = user.username
+  const roleText = profile?.degree || 'Student'
+  const locationText = user.location || 'Peradeniya, Kandy'
+  const trustScore = profile?.profileCompletion || 92
+  const rating = profile?.averageRating || 4.8
+  const jobsDone = profile?.completedJobs || 18
+  const totalEarned = profile?.totalEarnings || 24500
+  const totalReviews = reviews.length
 
   return (
     <Shell>
@@ -264,7 +137,7 @@ export default function Profile({ onNavigate }: PageProps) {
         </div>
         <div style={{ padding: '0 24px 24px' }}>
           <div style={{ marginTop: -46, marginBottom: 16 }}>
-            <Avatar name={USER.name} size={100} ring emoji="🧑‍🎓" />
+            <Avatar name={name} size={100} ring emoji="🧑‍🎓" />
           </div>
           <div
             style={{
@@ -278,12 +151,12 @@ export default function Profile({ onNavigate }: PageProps) {
             <div style={{ minWidth: 260 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, letterSpacing: -0.7, color: C.text }}>
-                  {USER.name}
+                  {name}
                 </h1>
                 <Verified />
               </div>
               <p style={{ margin: '7px 0 0', fontSize: 14.5, color: C.muted, fontWeight: 600 }}>
-                {USER.role}
+                {roleText}
               </p>
               <div
                 style={{
@@ -296,7 +169,7 @@ export default function Profile({ onNavigate }: PageProps) {
                   fontWeight: 600,
                 }}
               >
-                <span>📍 {USER.location}</span>
+                <span>📍 {locationText}</span>
                 <span>🗓 Member since Jan 2025</span>
                 <span>⚡ Replies in ~2 hours</span>
               </div>
@@ -322,13 +195,13 @@ export default function Profile({ onNavigate }: PageProps) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <CircleProgress value={USER.trust} size={80} label="TRUST" />
+              <CircleProgress value={trustScore} size={80} label="TRUST" />
               <div>
                 <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.7, color: C.faint }}>
                   TRUST SCORE
                 </div>
                 <div style={{ fontSize: 17, fontWeight: 800, color: C.text, marginTop: 2 }}>
-                  {USER.trust}/100
+                  {trustScore}/100
                 </div>
                 <div style={{ fontSize: 12, color: C.success, fontWeight: 700, marginTop: 2 }}>
                   Top 8% in Kandy
@@ -336,9 +209,9 @@ export default function Profile({ onNavigate }: PageProps) {
               </div>
             </div>
             <div style={{ width: 1, height: 54, background: C.border }} />
-            <StatBit label="Rating" node={<Stars rating={USER.rating} size={15} />} sub={`${totalReviews} reviews`} />
-            <StatBit label="Jobs done" node={<Big>{USER.jobs}</Big>} sub="0 cancelled" />
-            <StatBit label="Total earned" node={<Big>{rupees(USER.earned)}</Big>} sub="Across 9 clients" />
+            <StatBit label="Rating" node={<Stars rating={rating} size={15} />} sub={`${totalReviews} reviews`} />
+            <StatBit label="Jobs done" node={<Big>{jobsDone}</Big>} sub="0 cancelled" />
+            <StatBit label="Total earned" node={<Big>{rupees(totalEarned)}</Big>} sub="Across 9 clients" />
             <StatBit label="On-time" node={<Big>96%</Big>} sub="Delivery rate" />
           </div>
         </div>
@@ -347,8 +220,8 @@ export default function Profile({ onNavigate }: PageProps) {
       <Tabs
         tabs={[
           { key: 'about', label: 'About' },
-          { key: 'skills', label: 'Skills', count: 8 },
-          { key: 'portfolio', label: 'Portfolio', count: 9 },
+          { key: 'skills', label: 'Skills', count: skills.length },
+          { key: 'portfolio', label: 'Portfolio', count: portfolios.length },
           { key: 'reviews', label: 'Reviews', count: totalReviews },
         ]}
         active={tab}
@@ -358,13 +231,9 @@ export default function Profile({ onNavigate }: PageProps) {
       {tab === 'about' && (
         <div className="sl-rise" style={{ display: 'grid', gap: 18 }}>
           <Card>
-            <SectionTitle title="About Kasun" />
+            <SectionTitle title={`About ${name.split(' ')[0]}`} />
             <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.75, color: C.muted }}>
-              "I'm a third-year ICT undergraduate at the University of Peradeniya who turns campus
-              deadlines into design work. I started with society posters, and now I help small
-              businesses around Kandy look sharper than their budget suggests. I work fast, ask the
-              right questions early, and I have never missed an agreed deadline. Currently levelling
-              up my front-end skills so I can take on full web projects."
+              {user.bio || `Freelancer offering high quality services near Peradeniya and Kandy. Specialized in graphic design, tutoring, web development, and video editing.`}
             </p>
             <Grid min={200} gap={12} style={{ marginTop: 20 }}>
               <InfoTile icon="🎓" label="University" value="Peradeniya" />
@@ -396,18 +265,15 @@ export default function Profile({ onNavigate }: PageProps) {
                       {e.emoji}
                     </div>
                     {i < EXPERIENCE.length - 1 && (
-                      <div style={{ width: 2, flex: 1, background: C.border, marginTop: 6 }} />
+                      <div style={{ width: 2, flex: 1, background: C.border, margin: '8px 0' }} />
                     )}
                   </div>
-                  <div style={{ paddingBottom: i < EXPERIENCE.length - 1 ? 22 : 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>{e.role}</div>
-                    <div style={{ fontSize: 13, color: C.primary, fontWeight: 700, marginTop: 3 }}>
-                      {e.org}
+                  <div>
+                    <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text }}>{e.role}</div>
+                    <div style={{ fontSize: 13, color: C.muted, marginTop: 3 }}>
+                      {e.org} · {e.period}
                     </div>
-                    <div style={{ fontSize: 12, color: C.faint, fontWeight: 600, marginTop: 3 }}>
-                      {e.period}
-                    </div>
-                    <p style={{ margin: '8px 0 0', fontSize: 13.5, color: C.muted, lineHeight: 1.65 }}>
+                    <p style={{ margin: '8px 0 16px', fontSize: 13, color: C.muted, lineHeight: 1.6 }}>
                       {e.detail}
                     </p>
                   </div>
@@ -415,226 +281,49 @@ export default function Profile({ onNavigate }: PageProps) {
               ))}
             </div>
           </Card>
-
-          <Grid min={320} gap={18}>
-            <Card>
-              <SectionTitle title="Education" />
-              <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>
-                BSc (Hons) Information &amp; Communication Technology
-              </div>
-              <div style={{ fontSize: 13.5, color: C.muted, marginTop: 4 }}>
-                University of Peradeniya · 2023 — 2027
-              </div>
-              <div style={{ marginTop: 14 }}>
-                <MetricBar label="Degree progress (Year 3)" value={62} />
-              </div>
-              <Divider />
-              <SectionTitle title="Languages" />
-              {LANGUAGES.map((l) => (
-                <div key={l.name} style={{ marginBottom: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{l.name}</span>
-                    <span style={{ fontSize: 12.5, color: C.muted, fontWeight: 600 }}>{l.level}</span>
-                  </div>
-                  <Progress value={l.value} />
-                </div>
-              ))}
-            </Card>
-
-            <Card>
-              <SectionTitle title="Availability" subtitle="Weekday evenings and full weekends" />
-              <Grid min={90} gap={10}>
-                {AVAILABILITY.map((a) => {
-                  const free = a.slot !== '—'
-                  return (
-                    <div
-                      key={a.day}
-                      style={{
-                        padding: '12px 8px',
-                        borderRadius: 12,
-                        textAlign: 'center',
-                        background: free ? '#F0FDFA' : C.subtle,
-                        border: `1px solid ${free ? '#99F6E4' : C.border}`,
-                      }}
-                    >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: C.text }}>{a.day}</div>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          marginTop: 5,
-                          color: free ? '#0F766E' : C.faint,
-                        }}
-                      >
-                        {a.slot}
-                      </div>
-                    </div>
-                  )
-                })}
-              </Grid>
-              <Divider />
-              <SectionTitle title="Badges &amp; achievements" />
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {ACHIEVEMENTS.map((b) => (
-                  <div
-                    key={b.label}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '9px 14px',
-                      borderRadius: 999,
-                      background: b.tone + '12',
-                      border: `1px solid ${b.tone}30`,
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: b.tone,
-                    }}
-                  >
-                    <span>{b.icon}</span>
-                    {b.label}
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </Grid>
         </div>
       )}
 
       {tab === 'skills' && (
         <div className="sl-rise" style={{ display: 'grid', gap: 18 }}>
-          <AICallout
-            title="Skill gap: you are 72% ready for Web Development jobs"
-            action={
-              <Btn size="sm" onClick={() => onNavigate('skill-demand')}>
-                See demand
-              </Btn>
-            }
-          >
-            There are 9 open web projects near Peradeniya averaging {rupees(6500)}. Lifting React from
-            55% to 75% would unlock most of them — start with components and state.
-          </AICallout>
-
-          <Grid min={330} gap={18}>
-            {SKILL_GROUPS.map((g) => (
-              <Card key={g.category} hover>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-                  <div
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: 11,
-                      background: C.subtle,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 18,
-                    }}
-                  >
-                    {g.emoji}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15.5, fontWeight: 800, color: C.text }}>{g.category}</div>
-                    <div style={{ fontSize: 12, color: C.faint, fontWeight: 600 }}>
-                      {g.skills.length} skill{g.skills.length > 1 ? 's' : ''}
-                    </div>
-                  </div>
-                </div>
-                {g.skills.map((s) => (
-                  <div key={s.name} style={{ marginBottom: 6 }}>
-                    <MetricBar
-                      label={s.name}
-                      value={s.value}
-                      color={s.value >= 85 ? C.accent : C.primary}
-                    />
-                    <div style={{ fontSize: 11.5, color: C.faint, fontWeight: 600, marginTop: -8 }}>
-                      Endorsed by {s.endorsed} client{s.endorsed === 1 ? '' : 's'}
-                    </div>
-                  </div>
-                ))}
-              </Card>
-            ))}
-          </Grid>
-
-          <Card
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 14,
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>Add a new skill</div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
-                More verified skills means more matched opportunities in your radar.
-              </div>
+          <Card>
+            <SectionTitle title="Skills & expertise" subtitle="Verified on-chain credentials" />
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
+              {skills.map((s: any) => (
+                <SkillChip key={s.skill._id} label={`${s.skill.name} · ${s.studentSkill.endorsedByCount || 0} endorsements`} active />
+              ))}
             </div>
-            <Btn variant="secondary">+ Add Skill</Btn>
           </Card>
         </div>
       )}
 
       {tab === 'portfolio' && (
-        <div className="sl-rise">
-          <SectionTitle
-            title="Featured work"
-            subtitle="4 of 9 projects shown"
-            action={
-              <Btn variant="ghost" size="sm" onClick={() => onNavigate('portfolio')}>
-                View full portfolio →
-              </Btn>
-            }
-          />
-          <Grid min={260} gap={18}>
-            {WORKS.map((w) => (
-              <Card key={w.title} hover pad={0} style={{ overflow: 'hidden' }}>
+        <div className="sl-rise" style={{ display: 'grid', gap: 18 }}>
+          <Grid min={280} gap={16}>
+            {portfolios.map((p: any) => (
+              <Card key={p._id} pad={0} style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div
                   style={{
-                    height: 132,
-                    background: w.gradient,
+                    height: 160,
+                    background: 'linear-gradient(135deg, #4F46E5, #14B8A6)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: 46,
                   }}
                 >
-                  {w.emoji}
+                  🎨
                 </div>
                 <div style={{ padding: 18 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, color: C.text, lineHeight: 1.35 }}>
-                    {w.title}
+                    {p.title}
                   </div>
                   <div style={{ fontSize: 12.5, color: C.muted, marginTop: 5, fontWeight: 600 }}>
-                    {w.client}
+                    {p.category || 'Freelance Work'}
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '12px 0' }}>
-                    {w.skills.map((s) => (
-                      <SkillChip key={s} label={s} />
-                    ))}
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                    }}
-                  >
-                    <Stars rating={w.rating} />
-                    <span style={{ fontSize: 12, color: C.faint, fontWeight: 600 }}>{w.date}</span>
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 12,
-                      fontSize: 13,
-                      fontWeight: 800,
-                      color: C.success,
-                    }}
-                  >
-                    Earned {rupees(w.earned)}
-                  </div>
+                  <p style={{ margin: '8px 0 0', fontSize: 13, color: C.muted, lineHeight: 1.5 }}>
+                    {p.description}
+                  </p>
                 </div>
               </Card>
             ))}
@@ -651,10 +340,10 @@ export default function Profile({ onNavigate }: PageProps) {
                   <div
                     style={{ fontSize: 52, fontWeight: 800, letterSpacing: -2, color: C.text, lineHeight: 1 }}
                   >
-                    4.8
+                    {rating}
                   </div>
                   <div style={{ marginTop: 8 }}>
-                    <Stars rating={4.8} size={15} />
+                    <Stars rating={rating} size={15} />
                   </div>
                   <div style={{ fontSize: 12, color: C.faint, fontWeight: 600, marginTop: 6 }}>
                     {totalReviews} reviews
@@ -672,14 +361,14 @@ export default function Profile({ onNavigate }: PageProps) {
                         {d.stars}★
                       </span>
                       <Progress
-                        value={(d.count / totalReviews) * 100}
+                        value={totalReviews > 0 ? (reviews.filter((r: any) => r.rating === d.stars).length / totalReviews) * 100 : 0}
                         height={7}
                         gradient="linear-gradient(90deg,#F59E0B,#FBBF24)"
                       />
                       <span
                         style={{ fontSize: 12, fontWeight: 700, color: C.faint, width: 20, textAlign: 'right' }}
                       >
-                        {d.count}
+                        {totalReviews > 0 ? reviews.filter((r: any) => r.rating === d.stars).length : 0}
                       </span>
                     </div>
                   ))}
@@ -708,62 +397,53 @@ export default function Profile({ onNavigate }: PageProps) {
             </Card>
           </Grid>
 
-          {REVIEWS.map((r) => (
-            <Card key={r.name} hover>
-              <div style={{ display: 'flex', gap: 14 }}>
-                <Avatar name={r.name} size={46} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 10,
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text }}>{r.name}</div>
-                      <div style={{ fontSize: 12.5, color: C.muted, marginTop: 3 }}>{r.job}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <Stars rating={r.rating} />
-                      <div style={{ fontSize: 11.5, color: C.faint, fontWeight: 600, marginTop: 4 }}>
-                        {r.date}
+          {reviews.length === 0 ? (
+            <div style={{ padding: 18, textAlign: 'center', color: C.muted, fontSize: 12.5 }}>
+              No reviews yet.
+            </div>
+          ) : (
+            reviews.map((r: any) => (
+              <Card key={r._id} hover>
+                <div style={{ display: 'flex', gap: 14 }}>
+                  <Avatar name="Client" size={46} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 10,
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text }}>Client Review</div>
+                        <div style={{ fontSize: 12.5, color: C.muted, marginTop: 3 }}>Completed Job</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <Stars rating={r.rating} />
+                        <div style={{ fontSize: 11.5, color: C.faint, fontWeight: 600, marginTop: 4 }}>
+                          {new Date(r.createdAt).toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <p
-                    style={{
-                      margin: '14px 0 0',
-                      fontSize: 14,
-                      lineHeight: 1.7,
-                      color: C.text,
-                      paddingLeft: 14,
-                      borderLeft: `3px solid ${C.primary}33`,
-                    }}
-                  >
-                    “{r.quote}”
-                  </p>
-                  <div
-                    style={{
-                      marginTop: 14,
-                      fontSize: 12.5,
-                      color: C.faint,
-                      fontWeight: 600,
-                      display: 'flex',
-                      gap: 14,
-                    }}
-                  >
-                    <span>👍 {r.helpful} found this helpful</span>
-                    <span className="sl-link" style={{ color: C.primary, cursor: 'pointer' }}>
-                      Reply
-                    </span>
+                    <p
+                      style={{
+                        margin: '14px 0 0',
+                        fontSize: 14,
+                        lineHeight: 1.7,
+                        color: C.text,
+                        paddingLeft: 14,
+                        borderLeft: `3px solid ${C.primary}33`,
+                      }}
+                    >
+                      “{r.comment}”
+                    </p>
                   </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))
+          )}
         </div>
       )}
     </Shell>

@@ -13,7 +13,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { PageProps } from '../../types'
-import { AICallout, Btn, C, Card, Grid, KPI, rupees, SectionTitle } from '../../components/ui'
+import { AICallout, Btn, C, Card, Grid, rupees, SectionTitle } from '../../components/ui'
 
 const GROWTH = [
   { month: 'Mar', students: 820, jobs: 38, volume: 42000 },

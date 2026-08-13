@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   Avatar,
@@ -30,118 +32,6 @@ interface Job {
   lastUpdate: string
 }
 
-const JOBS: Job[] = [
-  {
-    id: 'j1',
-    title: 'Robotics Exhibition Poster',
-    client: 'University Robotics Society',
-    budget: 2000,
-    deadline: '2 days left',
-    progress: 65,
-    status: 'Active',
-    category: 'Graphic Design',
-    lastUpdate: 'You uploaded draft v2 · 3 hours ago',
-  },
-  {
-    id: 'j2',
-    title: 'Spice Menu Redesign (A4 + Digital)',
-    client: 'Kandy Spice Kitchen',
-    budget: 3500,
-    deadline: '5 days left',
-    progress: 40,
-    status: 'Active',
-    category: 'Graphic Design',
-    lastUpdate: 'Nimali Jayasuriya approved the colour palette · Yesterday',
-  },
-  {
-    id: 'j3',
-    title: 'Physics Lab Data Entry — Semester 2',
-    client: 'Faculty of Science',
-    budget: 1800,
-    deadline: '9 days left',
-    progress: 20,
-    status: 'Active',
-    category: 'Data Entry',
-    lastUpdate: 'Sheet 3 of 12 verified · 2 days ago',
-  },
-  {
-    id: 'j4',
-    title: 'Instagram Reel Edit — Kandy Food Tour',
-    client: 'Kandy Spice Kitchen',
-    budget: 2500,
-    deadline: 'Awaiting confirmation',
-    progress: 0,
-    status: 'Pending',
-    category: 'Video Editing',
-    lastUpdate: 'Proposal sent to Nimali Jayasuriya · 6 hours ago',
-  },
-  {
-    id: 'j5',
-    title: 'Sinhala–English Translation of Event Flyer',
-    client: 'Peradeniya Cultural Circle',
-    budget: 1200,
-    deadline: 'Awaiting confirmation',
-    progress: 0,
-    status: 'Pending',
-    category: 'Translation',
-    lastUpdate: 'Requester is reviewing 4 proposals · Yesterday',
-  },
-  {
-    id: 'j6',
-    title: 'Society Membership Certificate Template',
-    client: 'University Robotics Society',
-    budget: 1500,
-    deadline: 'Delivered 18 Jul',
-    progress: 100,
-    status: 'Completed',
-    category: 'Graphic Design',
-    lastUpdate: 'Payment released · 5-star review from Dinuka Bandara',
-  },
-  {
-    id: 'j7',
-    title: 'Chemistry Tutorial Slide Deck',
-    client: 'Faculty of Science',
-    budget: 2200,
-    deadline: 'Delivered 09 Jul',
-    progress: 100,
-    status: 'Completed',
-    category: 'Presentation Design',
-    lastUpdate: 'Payment released · Reviewed by Dr. Anura Rajapaksa',
-  },
-  {
-    id: 'j8',
-    title: 'Colombo Startup Pitch Deck Polish',
-    client: 'LoopLab Colombo',
-    budget: 4000,
-    deadline: 'Delivered 28 Jun',
-    progress: 100,
-    status: 'Completed',
-    category: 'Presentation Design',
-    lastUpdate: 'Payment released · Repeat client',
-  },
-  {
-    id: 'j9',
-    title: 'Batch Trip T-shirt Artwork',
-    client: 'ICT Batch of 2022',
-    budget: 1800,
-    deadline: 'Delivered 14 Jun',
-    progress: 100,
-    status: 'Completed',
-    category: 'Illustration',
-    lastUpdate: 'Payment released · Added to portfolio',
-  },
-  {
-    id: 'j10',
-    title: 'Kandy Heritage Walk Map Illustration',
-    client: 'Tharindu Weerasinghe',
-    budget: 2600,
-    deadline: 'Delivered 02 Jun',
-    progress: 100,
-    status: 'Completed',
-    category: 'Illustration',
-    lastUpdate: 'Payment released · 4.9 rating',
-  },
-]
 
 const TABS: { key: JobStatus; label: string }[] = [
   { key: 'Active', label: 'Active' },
@@ -152,21 +42,59 @@ const TABS: { key: JobStatus; label: string }[] = [
 
 export default function MyJobs({ onNavigate }: PageProps) {
   const [tab, setTab] = useState<JobStatus>('Active')
+  const dbJobs = useQuery(api.queries.myJobs, {})
+
+  const loading = dbJobs === undefined
+
+  const jobs = useMemo(() => {
+    if (!dbJobs) return []
+    return dbJobs.map((j: any) => {
+      let status: JobStatus = 'Active'
+      if (['assigned', 'in_progress', 'submitted', 'revision'].includes(j.job.status)) {
+        status = 'Active'
+      } else if (j.job.status === 'completed') {
+        status = 'Completed'
+      } else if (j.job.status === 'cancelled') {
+        status = 'Cancelled'
+      }
+      return {
+        id: j.job._id,
+        title: j.jobRequest?.title || 'Job Opportunity',
+        client: j.requester?.username || 'Client',
+        budget: j.job.agreedPrice,
+        deadline: j.job.deadline ? `Due on ${new Date(j.job.deadline).toLocaleDateString()}` : 'Awaiting deadline',
+        progress: j.job.status === 'completed' ? 100 : j.job.status === 'submitted' ? 100 : j.job.status === 'revision' ? 85 : 50,
+        status,
+        category: j.jobRequest?.category || 'Category',
+        lastUpdate: j.job.status === 'submitted' ? 'Waiting for client review' : j.job.status === 'completed' ? 'Payment released' : 'In progress',
+      }
+    })
+  }, [dbJobs])
 
   const counts = useMemo(() => {
     const base: Record<JobStatus, number> = { Active: 0, Pending: 0, Completed: 0, Cancelled: 0 }
-    for (const j of JOBS) base[j.status] += 1
+    for (const j of jobs) base[j.status] += 1
     return base
-  }, [])
+  }, [jobs])
 
-  const visible = useMemo(() => JOBS.filter((j) => j.status === tab), [tab])
+  const visible = useMemo(() => jobs.filter((j) => j.status === tab), [tab, jobs])
 
   const summary = [
-    { label: 'Active jobs', value: '3', tone: '#1D4ED8' },
-    { label: 'Pending proposals', value: '2', tone: C.warning },
-    { label: 'Completed', value: '18', tone: C.success },
-    { label: 'Total earned', value: rupees(24500), tone: C.primary },
+    { label: 'Active jobs', value: counts['Active'], tone: '#1D4ED8' },
+    { label: 'Pending proposals', value: counts['Pending'], tone: C.warning },
+    { label: 'Completed', value: counts['Completed'], tone: C.success },
+    { label: 'Total earned', value: rupees(jobs.filter(j => j.status === 'Completed').reduce((sum, j) => sum + j.budget, 0)), tone: C.primary },
   ]
+
+  if (loading) {
+    return (
+      <Shell>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', fontSize: 16, color: C.muted }}>
+          Loading jobs...
+        </div>
+      </Shell>
+    )
+  }
 
   return (
     <Shell>
@@ -225,8 +153,8 @@ export default function MyJobs({ onNavigate }: PageProps) {
       {visible.length === 0 ? (
         <EmptyState
           emoji="🗂️"
-          title="Nothing cancelled"
-          text="You have never dropped a job — that consistency is a big part of your 92 trust score. Keep the streak going."
+          title="Nothing here"
+          text="You have no jobs in this category. Browse opportunities to get matched."
           action={<Btn onClick={() => onNavigate('opportunities')}>Browse opportunities</Btn>}
         />
       ) : (
@@ -286,17 +214,17 @@ function JobCard({
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
         {job.status === 'Active' && (
           <>
-            <Btn size="sm" onClick={() => onNavigate('job-workspace')}>
+            <Btn size="sm" onClick={() => onNavigate('job-workspace', { jobId: job.id })}>
               Open Job
             </Btn>
-            <Btn size="sm" variant="secondary" onClick={() => onNavigate('submit-work')}>
+            <Btn size="sm" variant="secondary" onClick={() => onNavigate('submit-work', { jobId: job.id })}>
               Submit Work
             </Btn>
           </>
         )}
         {job.status === 'Pending' && (
           <>
-            <Btn size="sm" onClick={() => onNavigate('opportunity-detail')}>
+            <Btn size="sm" onClick={() => onNavigate('opportunity-detail', { opportunityId: job.id })}>
               View Details
             </Btn>
             <Btn size="sm" variant="danger">

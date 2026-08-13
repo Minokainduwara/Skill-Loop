@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -11,13 +13,11 @@ import {
   HERO_GRADIENT,
   KPI,
   MatchBadge,
-  NOTIFICATIONS,
   Progress,
   SectionTitle,
   Shell,
   SkillChip,
   StatusBadge,
-  USER,
   rupees,
 } from '../components/ui'
 
@@ -30,53 +30,7 @@ function getGreeting() {
   return 'Good evening'
 }
 
-const ACTIVE_JOBS = [
-  {
-    title: 'Robotics Exhibition Poster',
-    client: 'University Robotics Society',
-    budget: 2000,
-    deadline: 'Due in 2 days',
-    urgency: 'high',
-    status: 'In Progress',
-    progress: 65,
-    icon: '🎨',
-  },
-  {
-    title: 'Café Menu Redesign',
-    client: 'Kandy Hills Café',
-    budget: 1500,
-    deadline: 'Due in 5 days',
-    urgency: 'medium',
-    status: 'Awaiting Review',
-    progress: 90,
-    icon: '🍽️',
-  },
-  {
-    title: 'Physics Tuition — Grade 12',
-    client: 'Dinuka Bandara',
-    budget: 3000,
-    deadline: 'Sat 4 pm',
-    urgency: 'low',
-    status: 'In Progress',
-    progress: 40,
-    icon: '📐',
-  },
-]
 
-const MATCHES = [
-  { title: 'Event Poster Design', match: 96, budget: 2000, deadline: '3 days', distance: '1.2 km', skills: ['Graphic Design', 'Canva'], icon: '🖼️' },
-  { title: 'Restaurant Menu Layout', match: 92, budget: 1500, deadline: '4 days', distance: '2.8 km', skills: ['Illustrator', 'Print'], icon: '🍛' },
-  { title: 'Instagram Reel Editing', match: 88, budget: 2500, deadline: '2 days', distance: '3.4 km', skills: ['Video Editing', 'CapCut'], icon: '🎬' },
-  { title: 'CV & Cover Letter Design', match: 85, budget: 1000, deadline: '6 days', distance: '0.8 km', skills: ['Typography', 'Word'], icon: '📄' },
-]
-
-const QUICK_ACTIONS = [
-  { icon: '📡', label: 'Open Radar', sub: '12 nearby', page: 'radar' as const, accent: C.primary },
-  { icon: '🔍', label: 'Browse Jobs', sub: '8 matched', page: 'opportunities' as const, accent: '#7C3AED' },
-  { icon: '💬', label: 'Messages', sub: '2 unread', page: 'messages' as const, accent: C.accent },
-  { icon: '💰', label: 'Earnings', sub: rupees(7800), page: 'earnings' as const, accent: C.success },
-  { icon: '👤', label: 'My Profile', sub: 'Trust 92', page: 'profile' as const, accent: C.warning },
-]
 
 const RADAR_BLIPS = [
   { x: 34, y: 30, r: 7, color: '#5EEAD4' },
@@ -138,7 +92,105 @@ function UrgencyBar({ urgency }: { urgency: string }) {
 export default function Dashboard({ onNavigate }: PageProps) {
   const [dismissedTip, setDismissedTip] = useState(false)
 
-  const urgentJob = ACTIVE_JOBS.find(j => j.urgency === 'high')
+  // 1. Fetch real backend data
+  const profileData = useQuery(api.queries.myStudentProfile)
+  const dbJobs = useQuery(api.queries.myJobs, {})
+  const dbMatches = useQuery(api.queries.myMatches, {})
+  const dbNotifications = useQuery(api.queries.myNotifications, {})
+  const dbOpps = useQuery(api.queries.listOpportunities, {})
+
+  // 2. Fallbacks & Loading states
+  const loading = profileData === undefined || dbJobs === undefined || dbMatches === undefined || dbNotifications === undefined || dbOpps === undefined
+
+  if (loading) {
+    return (
+      <Shell>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', fontSize: 16, fontWeight: 700, color: C.muted }}>
+          Loading your dashboard...
+        </div>
+      </Shell>
+    )
+  }
+
+  const user = profileData?.user
+  const profile = profileData?.profile
+
+  const name = user?.username || 'Student'
+  const trustScore = profile?.profileCompletion || 92
+  const rating = profile?.averageRating || 4.8
+  const jobsCompleted = profile?.completedJobs || 18
+  const earned = profile?.totalEarnings || 24500
+
+  // Filter active jobs from dbJobs
+  const activeJobsList = dbJobs.filter((j: any) =>
+    ['assigned', 'in_progress', 'submitted', 'revision'].includes(j.job.status)
+  )
+
+  const activeJobs = activeJobsList.map((j: any) => ({
+    id: j.job._id,
+    title: j.jobRequest?.title || 'Job Opportunity',
+    client: j.requester?.username || 'Client',
+    budget: j.job.agreedPrice,
+    deadline: j.job.deadline ? `Due in ${Math.round((j.job.deadline - Date.now()) / (24 * 3600 * 1000))} days` : 'Awaiting deadline',
+    urgency: j.job.status === 'revision' ? 'high' : 'medium',
+    status: j.job.status,
+    progress: j.job.status === 'submitted' ? 100 : j.job.status === 'revision' ? 85 : 50,
+    icon: '💼',
+  }))
+
+  const urgentJob = activeJobs.find((j: any) => j.urgency === 'high') || activeJobs[0]
+
+  const matches = dbMatches.map((m: any) => ({
+    id: m.jobRequest?._id,
+    title: m.jobRequest?.title || 'Matched Job',
+    match: Math.round(m.match.totalScore * 100),
+    budget: m.jobRequest?.budgetMin || 1000,
+    deadline: m.jobRequest?.deadline ? `${Math.round((m.jobRequest.deadline - Date.now()) / (24 * 3600 * 1000))} days` : '3 days',
+    distance: '1.2 km',
+    skills: [],
+    icon: '🎯',
+  }))
+
+  const totalOppsCount = dbOpps.length || 8
+
+  function getNotificationVisuals(type: string) {
+    switch (type) {
+      case 'new_match':
+        return { icon: '🔥', tone: '#FEF3C7' }
+      case 'payment':
+        return { icon: '💰', tone: '#DCFCE7' }
+      case 'review':
+        return { icon: '⭐', tone: '#FEF9C3' }
+      case 'opportunity':
+        return { icon: '🎯', tone: '#EEF2FF' }
+      case 'system':
+        return { icon: '⚙️', tone: '#F3F4F6' }
+      default:
+        return { icon: '🔔', tone: '#F0FDFA' }
+    }
+  }
+
+  function formatTime(createdAt: number) {
+    const diffMs = Date.now() - createdAt
+    const diffMins = Math.floor(diffMs / 60000)
+    if (diffMins < 1) return 'just now'
+    if (diffMins < 60) return `${diffMins} min ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`
+    return new Date(createdAt).toLocaleDateString()
+  }
+
+  const notifications = dbNotifications.slice(0, 5).map((n: any) => {
+    const visuals = getNotificationVisuals(n.type)
+    return {
+      title: n.title,
+      body: n.message,
+      icon: visuals.icon,
+      tone: visuals.tone,
+      unread: !n.isRead,
+      time: formatTime(n.createdAt),
+    }
+  })
 
   return (
     <Shell>
@@ -146,17 +198,17 @@ export default function Dashboard({ onNavigate }: PageProps) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, letterSpacing: 0.3, marginBottom: 4 }}>
-            {getGreeting()}, Kasun 👋
+            {getGreeting()}, {name.split(' ')[0]} 👋
           </div>
           <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: C.text, letterSpacing: -0.8, lineHeight: 1.15 }}>
             You have{' '}
-            <span style={{ color: C.primary }}>8 new opportunities</span>{' '}
+            <span style={{ color: C.primary }}>{totalOppsCount} new opportunities</span>{' '}
             waiting.
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
             <Badge color={C.success} dot>✓ Verified Student</Badge>
-            <Badge color={C.accent}>Trust Score {USER.trust}</Badge>
-            <span style={{ fontSize: 12.5, color: C.faint }}>⭐ 4.8 · 18 jobs completed</span>
+            <Badge color={C.accent}>Trust Score {trustScore}</Badge>
+            <span style={{ fontSize: 12.5, color: C.faint }}>⭐ {rating} · {jobsCompleted} jobs completed</span>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -167,11 +219,11 @@ export default function Dashboard({ onNavigate }: PageProps) {
 
       {/* ═══════════════════════ STAT PILLS ══════════════════════════════ */}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
-        <StatPill icon="🎯" value="8" label="New opportunities" tone={C.primary} onClick={() => onNavigate('opportunities')} />
-        <StatPill icon="💼" value="3" label="Active jobs" tone={C.accent} onClick={() => onNavigate('my-jobs')} />
-        <StatPill icon="💰" value={rupees(USER.earned)} label="Total earned" tone={C.success} onClick={() => onNavigate('earnings')} />
+        <StatPill icon="🎯" value={totalOppsCount} label="New opportunities" tone={C.primary} onClick={() => onNavigate('opportunities')} />
+        <StatPill icon="💼" value={activeJobs.length} label="Active jobs" tone={C.accent} onClick={() => onNavigate('my-jobs')} />
+        <StatPill icon="💰" value={rupees(earned)} label="Total earned" tone={C.success} onClick={() => onNavigate('earnings')} />
         <StatPill icon="📈" value={rupees(7800)} label="This month" tone="#16A34A" onClick={() => onNavigate('earnings')} />
-        <StatPill icon="🛡️" value={`${USER.trust}/100`} label="Trust score" tone={C.warning} onClick={() => onNavigate('profile')} />
+        <StatPill icon="🛡️" value={`${trustScore}/100`} label="Trust score" tone={C.warning} onClick={() => onNavigate('profile')} />
       </div>
 
       {/* ═══════════════════════ PRIORITY ACTION ════════════════════════ */}
@@ -201,15 +253,21 @@ export default function Dashboard({ onNavigate }: PageProps) {
             <UrgencyBar urgency={urgentJob.urgency} />
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <Btn size="sm" onClick={() => onNavigate('job-workspace')}>Open Job</Btn>
-            <Btn variant="secondary" size="sm" onClick={() => onNavigate('submit-work')}>Submit Work</Btn>
+            <Btn size="sm" onClick={() => onNavigate('job-workspace', { jobId: urgentJob.id })}>Open Job</Btn>
+            <Btn variant="secondary" size="sm" onClick={() => onNavigate('submit-work', { jobId: urgentJob.id })}>Submit Work</Btn>
           </div>
         </div>
       )}
 
       {/* ═══════════════════════ QUICK ACTIONS ══════════════════════════ */}
       <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, marginBottom: 28 }} className="scrollbar-hide">
-        {QUICK_ACTIONS.map(a => (
+        {[
+          { icon: '📡', label: 'Open Radar', sub: '12 nearby', page: 'radar' as const, accent: C.primary },
+          { icon: '🔍', label: 'Browse Jobs', sub: `${totalOppsCount} matched`, page: 'opportunities' as const, accent: '#7C3AED' },
+          { icon: '💬', label: 'Messages', sub: '2 unread', page: 'messages' as const, accent: C.accent },
+          { icon: '💰', label: 'Earnings', sub: rupees(7800), page: 'earnings' as const, accent: C.success },
+          { icon: '👤', label: 'My Profile', sub: `Trust ${trustScore}`, page: 'profile' as const, accent: C.warning },
+        ].map(a => (
           <button
             key={a.label}
             onClick={() => onNavigate(a.page)}
@@ -295,30 +353,37 @@ export default function Dashboard({ onNavigate }: PageProps) {
             <Btn variant="ghost" size="sm" onClick={() => onNavigate('my-jobs')}>All jobs →</Btn>
           </div>
 
-          {ACTIVE_JOBS.map(j => (
-            <Card key={j.title} hover pad={16} onClick={() => onNavigate('job-workspace')}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 11, background: j.urgency === 'high' ? '#FEE2E2' : j.urgency === 'medium' ? '#FEF3C7' : '#F0FDFA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                  {j.icon}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 2 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 800, color: C.text, lineHeight: 1.3 }}>{j.title}</div>
-                    <StatusBadge status={j.status} />
-                  </div>
-                  <div style={{ fontSize: 12, color: C.muted, marginBottom: 8 }}>
-                    {j.client} · <strong style={{ color: C.text }}>{rupees(j.budget)}</strong> · {j.deadline}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ flex: 1 }}>
-                      <Progress value={j.progress} height={5} gradient={j.urgency === 'high' ? 'linear-gradient(90deg,#EF4444,#F97316)' : j.urgency === 'medium' ? `linear-gradient(90deg,${C.warning},#F59E0B)` : `linear-gradient(90deg,${C.primary},${C.accent})`} />
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: C.text, minWidth: 28, textAlign: 'right' }}>{j.progress}%</span>
-                  </div>
-                </div>
-              </div>
+          {activeJobs.length === 0 ? (
+            <Card pad={20} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, color: C.muted }}>
+              <span style={{ fontSize: 24, marginBottom: 8 }}>💼</span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>No active jobs</span>
             </Card>
-          ))}
+          ) : (
+            activeJobs.map(j => (
+              <Card key={j.id} hover pad={16} onClick={() => onNavigate('job-workspace', { jobId: j.id })}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 11, background: j.urgency === 'high' ? '#FEE2E2' : j.urgency === 'medium' ? '#FEF3C7' : '#F0FDFA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                    {j.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 2 }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 800, color: C.text, lineHeight: 1.3 }}>{j.title}</div>
+                      <StatusBadge status={j.status === 'in_progress' ? 'Active' : j.status === 'revision' ? 'Active' : j.status === 'submitted' ? 'Pending' : 'Active'} />
+                    </div>
+                    <div style={{ fontSize: 12, color: C.muted, marginBottom: 8 }}>
+                      {j.client} · <strong style={{ color: C.text }}>{rupees(j.budget)}</strong> · {j.deadline}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <Progress value={j.progress} height={5} gradient={j.urgency === 'high' ? 'linear-gradient(90deg,#EF4444,#F97316)' : j.urgency === 'medium' ? `linear-gradient(90deg,${C.warning},#F59E0B)` : `linear-gradient(90deg,${C.primary},${C.accent})`} />
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: C.text, minWidth: 28, textAlign: 'right' }}>{j.progress}%</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
 
           {/* Earnings month card */}
           <Card pad={18} style={{ background: 'linear-gradient(135deg,#F0FDF4,#fff)', border: `1.5px solid #BBF7D0` }}>
@@ -343,37 +408,44 @@ export default function Dashboard({ onNavigate }: PageProps) {
       <SectionTitle
         title="Your best matches right now"
         subtitle="Ranked by skill fit, distance and urgency"
-        action={<Btn variant="ghost" size="sm" onClick={() => onNavigate('opportunities')}>View all 8 →</Btn>}
+        action={<Btn variant="ghost" size="sm" onClick={() => onNavigate('opportunities')}>View all {totalOppsCount} →</Btn>}
         style={{ marginBottom: 14 }}
       />
       <Grid min={260} gap={14} style={{ marginBottom: 28 }}>
-        {MATCHES.map((m, i) => (
-          <div key={m.title} className="sl-rise" style={{ animationDelay: `${i * 55}ms` }}>
-            <Card hover pad={18} style={{ height: '100%', display: 'flex', flexDirection: 'column' }} onClick={() => onNavigate('opportunity-detail')}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `${C.primary}14`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{m.icon}</div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: C.text, lineHeight: 1.3 }}>{m.title}</div>
+        {matches.length === 0 ? (
+          <Card pad={20} style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: C.muted }}>
+            <span style={{ fontSize: 24, marginBottom: 8 }}>🎯</span>
+            <span style={{ fontSize: 13, fontWeight: 700 }}>No matched opportunities right now</span>
+          </Card>
+        ) : (
+          matches.map((m: any, i: number) => (
+            <div key={i} className="sl-rise" style={{ animationDelay: `${i * 55}ms` }}>
+              <Card hover pad={18} style={{ height: '100%', display: 'flex', flexDirection: 'column' }} onClick={() => onNavigate('opportunity-detail', { opportunityId: m.id })}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: `${C.primary}14`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{m.icon}</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: C.text, lineHeight: 1.3 }}>{m.title}</div>
+                  </div>
+                  <MatchBadge pct={m.match} size="sm" />
                 </div>
-                <MatchBadge pct={m.match} size="sm" />
-              </div>
 
-              <div style={{ display: 'flex', gap: 12, fontSize: 12.5, color: C.muted, fontWeight: 600, marginBottom: 10, flexWrap: 'wrap' }}>
-                <span style={{ color: C.text, fontWeight: 800 }}>{rupees(m.budget)}</span>
-                <span>🕒 {m.deadline}</span>
-                <span>📍 {m.distance}</span>
-              </div>
+                <div style={{ display: 'flex', gap: 12, fontSize: 12.5, color: C.muted, fontWeight: 600, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <span style={{ color: C.text, fontWeight: 800 }}>{rupees(m.budget)}</span>
+                  <span>🕒 {m.deadline}</span>
+                  <span>📍 {m.distance}</span>
+                </div>
 
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-                {m.skills.map(s => <SkillChip key={s} label={s} />)}
-              </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                  {m.skills.map((s: string) => <SkillChip key={s} label={s} />)}
+                </div>
 
-              <div style={{ marginTop: 'auto' }}>
-                <Btn variant="secondary" size="sm" full>View opportunity</Btn>
-              </div>
-            </Card>
-          </div>
-        ))}
+                <div style={{ marginTop: 'auto' }}>
+                  <Btn variant="secondary" size="sm" full>View opportunity</Btn>
+                </div>
+              </Card>
+            </div>
+          ))
+        )}
       </Grid>
 
       {/* ═══════════════════════ AI TIP + RECENT ACTIVITY ════════════════ */}
@@ -422,44 +494,48 @@ export default function Dashboard({ onNavigate }: PageProps) {
             <Btn variant="ghost" size="sm" onClick={() => onNavigate('notifications')}>All →</Btn>
           </div>
           <Card pad={8}>
-            {NOTIFICATIONS.slice(0, 5).map((n, i) => (
-              <div
-                key={n.title}
-                onClick={() => onNavigate('notifications')}
-                className="sl-link"
-                style={{
-                  display: 'flex',
-                  gap: 12,
-                  alignItems: 'center',
-                  padding: '12px 12px',
-                  cursor: 'pointer',
-                  borderTop: i === 0 ? 'none' : `1px solid ${C.subtle}`,
-                  borderRadius: 10,
-                }}
-              >
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: n.tone, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
-                  {n.icon}
+            {notifications.length === 0 ? (
+              <div style={{ padding: 18, textAlign: 'center', color: C.muted, fontSize: 12.5 }}>No recent activity</div>
+            ) : (
+              notifications.map((n: any, i: number) => (
+                <div
+                  key={i}
+                  onClick={() => onNavigate('notifications')}
+                  className="sl-link"
+                  style={{
+                    display: 'flex',
+                    gap: 12,
+                    alignItems: 'center',
+                    padding: '12px 12px',
+                    cursor: 'pointer',
+                    borderTop: i === 0 ? 'none' : `1px solid ${C.subtle}`,
+                    borderRadius: 10,
+                  }}
+                >
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: n.tone, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                    {n.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.title}</div>
+                    <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.body}</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                    <span style={{ fontSize: 10.5, color: C.faint, fontWeight: 600 }}>{n.time}</span>
+                    {n.unread && <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.primary }} />}
+                  </div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.title}</div>
-                  <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.body}</div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                  <span style={{ fontSize: 10.5, color: C.faint, fontWeight: 600 }}>{n.time}</span>
-                  {n.unread && <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.primary }} />}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </Card>
 
           {/* Trust score card */}
           <Card pad={18} style={{ marginTop: 14 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <CircleProgress value={USER.trust} size={76} label="TRUST" />
+              <CircleProgress value={trustScore} size={76} label="TRUST" />
               <div>
                 <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text, marginBottom: 4 }}>Excellent standing</div>
                 <div style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5 }}>
-                  18 jobs · ⭐ 4.8 avg · 100% on-time
+                  {jobsCompleted} jobs · ⭐ {rating} avg · 100% on-time
                 </div>
                 <div style={{ marginTop: 10 }}>
                   <Btn variant="ghost" size="sm" onClick={() => onNavigate('profile')}>View profile →</Btn>
@@ -472,3 +548,4 @@ export default function Dashboard({ onNavigate }: PageProps) {
     </Shell>
   )
 }
+

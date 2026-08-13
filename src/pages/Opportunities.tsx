@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -15,163 +17,6 @@ import {
   SkillChip,
   rupees,
 } from '../components/ui'
-
-type JobType = 'Quick Task' | 'Medium Task' | 'Project'
-
-interface Opportunity {
-  id: string
-  title: string
-  client: string
-  category: string
-  type: JobType
-  budget: number
-  deadline: string
-  daysLeft: number
-  distance: number
-  skills: string[]
-  match: number
-  posted: string
-  blurb: string
-}
-
-const OPPORTUNITIES: Opportunity[] = [
-  {
-    id: 'o1',
-    title: 'Event Poster Design',
-    client: 'University Robotics Society',
-    category: 'Design',
-    type: 'Quick Task',
-    budget: 2000,
-    deadline: 'August 15',
-    daysLeft: 3,
-    distance: 2.4,
-    skills: ['Graphic Design', 'Canva', 'Poster Design'],
-    match: 96,
-    posted: '2 min ago',
-    blurb: 'Modern promotional poster for the annual Robotics Exhibition — print plus social.',
-  },
-  {
-    id: 'o2',
-    title: 'Python Tutoring (A/L Revision)',
-    client: 'Nimali Jayasuriya',
-    category: 'Tutoring',
-    type: 'Medium Task',
-    budget: 4500,
-    deadline: 'August 22',
-    daysLeft: 10,
-    distance: 1.1,
-    skills: ['Python', 'Tutoring', 'Data Structures'],
-    match: 91,
-    posted: '35 min ago',
-    blurb: 'Six one-hour sessions covering loops, functions and basic OOP for a Grade 13 student.',
-  },
-  {
-    id: 'o3',
-    title: 'Video Editing for Cafe Promo',
-    client: 'Kandy Hills Cafe',
-    category: 'Video',
-    type: 'Medium Task',
-    budget: 6500,
-    deadline: 'August 19',
-    daysLeft: 7,
-    distance: 4.8,
-    skills: ['Video Editing', 'Premiere Pro', 'Colour Grading'],
-    match: 87,
-    posted: '2 hours ago',
-    blurb: 'Cut a 45-second reel from 20 minutes of phone footage. Music and subtitles included.',
-  },
-  {
-    id: 'o4',
-    title: 'CV & Cover Letter Designer',
-    client: 'Dinuka Bandara',
-    category: 'Design',
-    type: 'Quick Task',
-    budget: 1500,
-    deadline: 'August 14',
-    daysLeft: 2,
-    distance: 0.8,
-    skills: ['Graphic Design', 'Typography', 'Canva'],
-    match: 84,
-    posted: '4 hours ago',
-    blurb: 'A clean single-page CV template for an internship application at a Colombo firm.',
-  },
-  {
-    id: 'o5',
-    title: 'Website Landing Page',
-    client: 'Peradeniya Book Hub',
-    category: 'Development',
-    type: 'Project',
-    budget: 18000,
-    deadline: 'September 2',
-    daysLeft: 21,
-    distance: 3.2,
-    skills: ['Web Development', 'React', 'Responsive Design'],
-    match: 79,
-    posted: 'Yesterday',
-    blurb: 'One-page responsive site with catalogue section and WhatsApp order button.',
-  },
-  {
-    id: 'o6',
-    title: 'Product Photography — Handmade Batik',
-    client: 'Tharindu Weerasinghe',
-    category: 'Photography',
-    type: 'Medium Task',
-    budget: 5200,
-    deadline: 'August 25',
-    daysLeft: 13,
-    distance: 6.4,
-    skills: ['Photography', 'Lighting', 'Photo Retouching'],
-    match: 76,
-    posted: 'Yesterday',
-    blurb: 'Shoot 15 batik pieces on white background for an online store listing.',
-  },
-  {
-    id: 'o7',
-    title: 'Laptop Troubleshooting Visit',
-    client: 'Nimal Silva',
-    category: 'IT Support',
-    type: 'Quick Task',
-    budget: 1200,
-    deadline: 'August 13',
-    daysLeft: 1,
-    distance: 1.9,
-    skills: ['IT Support', 'Windows', 'Hardware'],
-    match: 72,
-    posted: '2 days ago',
-    blurb: 'Laptop overheating and slow boot. On-site diagnosis in Kandy town.',
-  },
-  {
-    id: 'o8',
-    title: 'Social Media Kit for Fresher Night',
-    client: 'Faculty of Engineering Union',
-    category: 'Design',
-    type: 'Medium Task',
-    budget: 7500,
-    deadline: 'August 21',
-    daysLeft: 9,
-    distance: 2.1,
-    skills: ['Graphic Design', 'Social Media', 'Canva'],
-    match: 88,
-    posted: '6 hours ago',
-    blurb: 'Twelve coordinated posts, stories and a cover banner in one visual system.',
-  },
-  {
-    id: 'o9',
-    title: 'Sinhala–English Translation',
-    client: 'Sahan Fernando',
-    category: 'Writing',
-    type: 'Quick Task',
-    budget: 2800,
-    deadline: 'August 18',
-    daysLeft: 6,
-    distance: 9.6,
-    skills: ['Translation', 'Sinhala', 'Proofreading'],
-    match: 68,
-    posted: '3 days ago',
-    blurb: 'Translate a 6-page community project report from Sinhala into English.',
-  },
-]
-
 const CATEGORIES = ['All categories', 'Design', 'Development', 'Tutoring', 'Video', 'Photography', 'IT Support', 'Writing']
 const TYPES = ['All', 'Quick Task', 'Medium Task', 'Project']
 const SORTS = ['Best match', 'Newest', 'Highest budget', 'Closest', 'Deadline soonest']
@@ -212,9 +57,29 @@ export default function Opportunities({ onNavigate }: PageProps) {
     setChips([])
   }
 
+  const dbOpps = useQuery(api.queries.listOpportunities, {})
+  const opportunities = useMemo(() => {
+    if (!dbOpps) return []
+    return dbOpps.map((opp: any) => ({
+      id: opp._id,
+      title: opp.title,
+      client: opp.source === 'job_requests' ? 'Local Requester' : opp.source === 'community_demand' ? 'Community Demand' : 'Admin Spot',
+      category: opp.category,
+      type: (opp.estimatedBudgetMax && opp.estimatedBudgetMax > 10000) ? 'Project' : opp.estimatedBudgetMax > 3000 ? 'Medium Task' : 'Quick Task',
+      budget: opp.estimatedBudgetMax || opp.estimatedBudgetMin || 1500,
+      deadline: opp.expiresAt ? new Date(opp.expiresAt).toLocaleDateString() : 'August 22',
+      daysLeft: opp.expiresAt ? Math.max(1, Math.round((opp.expiresAt - Date.now()) / (24 * 3600 * 1000))) : 5,
+      distance: 1.5,
+      skills: opp.skills || [],
+      match: opp.demandScore || 90,
+      posted: 'just now',
+      blurb: opp.description,
+    }))
+  }, [dbOpps])
+
   const list = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const filtered = OPPORTUNITIES.filter((o) => {
+    const filtered = opportunities.filter((o) => {
       if (q) {
         const haystack = [o.title, o.client, o.category, o.blurb, ...o.skills].join(' ').toLowerCase()
         if (!haystack.includes(q)) return false
@@ -234,7 +99,7 @@ export default function Opportunities({ onNavigate }: PageProps) {
     if (sort === 'Closest') sorted.sort((a, b) => a.distance - b.distance)
     if (sort === 'Deadline soonest') sorted.sort((a, b) => a.daysLeft - b.daysLeft)
     return sorted
-  }, [query, category, type, sort, chips])
+  }, [query, category, type, sort, chips, opportunities])
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -242,7 +107,7 @@ export default function Opportunities({ onNavigate }: PageProps) {
         <PageHead
           eyebrow="Matched to your skills"
           title="Opportunities For You"
-          subtitle={`${list.length} of ${OPPORTUNITIES.length} nearby opportunities match your current filters — ranked by AI match score.`}
+          subtitle={`${list.length} of ${opportunities.length} nearby opportunities match your current filters — ranked by AI match score.`}
           actions={<Btn variant="secondary" onClick={() => onNavigate('radar')}>Open Demand Radar</Btn>}
         />
 
@@ -353,7 +218,7 @@ export default function Opportunities({ onNavigate }: PageProps) {
                 </div>
 
                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 16 }}>
-                  {o.skills.map((s) => (
+                  {o.skills.map((s: string) => (
                     <span
                       key={s}
                       style={{
@@ -382,7 +247,7 @@ export default function Opportunities({ onNavigate }: PageProps) {
                   <Badge color={C.muted} bg={C.subtle}>
                     {o.type} · {o.posted}
                   </Badge>
-                  <Btn size="sm" onClick={() => onNavigate('opportunity-detail')}>
+                  <Btn size="sm" onClick={() => onNavigate('opportunity-detail', { opportunityId: o.id })}>
                     View Opportunity
                   </Btn>
                 </div>

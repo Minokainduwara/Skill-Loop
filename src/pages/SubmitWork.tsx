@@ -1,5 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
+import { useQuery, useMutation } from 'convex/react'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -46,14 +49,34 @@ const INITIAL_FILES: Attached[] = [
   { id: 'f2', name: 'robotics-poster-social-1080.png', size: '2.8 MB', type: 'PNG · 1080 × 1080', icon: '🖼️' },
 ]
 
-export default function SubmitWork({ onNavigate }: PageProps) {
+export default function SubmitWork({ onNavigate, selectedJobId }: PageProps) {
   const [files, setFiles] = useState<Attached[]>(INITIAL_FILES)
   const [dragging, setDragging] = useState(false)
   const [note, setNote] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const workspace = useQuery(api.queries.jobWorkspace, {
+    jobId: (selectedJobId || '') as Id<'jobs'>,
+  })
+
+  const submitDeliverable = useMutation(api.mutations.submitDeliverable)
+
   const canSubmit = useMemo(() => files.length > 0 && confirmed, [files.length, confirmed])
+
+  const handleSubmit = async () => {
+    if (!selectedJobId) return
+    try {
+      await submitDeliverable({
+        jobId: selectedJobId as Id<'jobs'>,
+        fileUrl: files[0]?.name || 'deliverable.zip',
+        description: note,
+      })
+      onNavigate('completion')
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const addFiles = (list: FileList | null) => {
     if (!list || list.length === 0) return
@@ -81,6 +104,31 @@ export default function SubmitWork({ onNavigate }: PageProps) {
     addFiles(e.dataTransfer.files)
   }
 
+  if (workspace === undefined) {
+    return (
+      <Shell>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', fontSize: 16, color: C.muted }}>
+          Loading job workspace...
+        </div>
+      </Shell>
+    )
+  }
+
+  if (workspace === null) {
+    return (
+      <Shell>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', fontSize: 16, color: C.muted }}>
+          Job not found.
+        </div>
+      </Shell>
+    )
+  }
+
+  const { job, jobRequest, requester } = workspace
+  const clientName = requester?.username || 'Client'
+  const budgetVal = job.agreedPrice
+  const deadlineText = job.deadline ? new Date(job.deadline).toLocaleDateString() : 'August 14'
+
   return (
     <Shell>
       <PageHead
@@ -103,15 +151,15 @@ export default function SubmitWork({ onNavigate }: PageProps) {
         >
           <div>
             <div style={{ fontSize: 15.5, fontWeight: 800, color: C.text }}>
-              Robotics Exhibition Poster
+              {jobRequest?.title}
             </div>
             <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
-              University Robotics Society · Peradeniya
+              {clientName} · Peradeniya
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Badge color={C.primary}>💰 {rupees(2000)}</Badge>
-            <Badge color={C.warning}>⏱ Due 14 Aug, 6:00 PM</Badge>
+            <Badge color={C.primary}>💰 {rupees(budgetVal)}</Badge>
+            <Badge color={C.warning}>⏱ Due {deadlineText}</Badge>
             <Badge color={C.accent}>Escrow funded</Badge>
           </div>
         </div>
@@ -327,10 +375,10 @@ export default function SubmitWork({ onNavigate }: PageProps) {
             </button>
 
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-              <Btn size="lg" disabled={!canSubmit} onClick={() => onNavigate('completion')}>
+              <Btn size="lg" disabled={!canSubmit} onClick={handleSubmit}>
                 Submit for Review
               </Btn>
-              <Btn size="lg" variant="secondary" onClick={() => onNavigate('job-workspace')}>
+              <Btn size="lg" variant="secondary" onClick={() => onNavigate('job-workspace', { jobId: selectedJobId || '' })}>
                 Save draft
               </Btn>
             </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Page } from './types'
+import type { Page, PageProps, Navigate } from './types'
 import Nav from './components/Nav'
 import MobileNav from './components/MobileNav'
 import AdminNav from './components/AdminNav'
@@ -37,41 +37,60 @@ const ADMIN_PAGES: Page[] = ['admin-dashboard', 'admin-users', 'admin-jobs', 'ad
 
 export default function App() {
   const [page, setPage] = useState<Page>('landing')
+  const [selectedOpportunityId, setSelectedOpportunityId] = useState<string | null>(null)
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
 
-  const navigate = (p: Page) => {
+  const navigate: Navigate = (p, extra) => {
+    if (extra?.opportunityId !== undefined) {
+      setSelectedOpportunityId(extra.opportunityId)
+    }
+    if (extra?.jobId !== undefined) {
+      setSelectedJobId(extra.jobId)
+    }
+    if (extra?.studentId !== undefined) {
+      setSelectedStudentId(extra.studentId)
+    }
     setPage(p)
     window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   const render = () => {
+    const props: PageProps = {
+      onNavigate: navigate,
+      selectedOpportunityId,
+      selectedJobId,
+      selectedStudentId,
+    }
+
     switch (page) {
-      case 'landing':            return <Landing onNavigate={navigate} />
-      case 'login':              return <Login onNavigate={navigate} />
-      case 'signup':             return <Signup onNavigate={navigate} />
-      case 'onboarding':         return <Onboarding onNavigate={navigate} />
-      case 'dashboard':          return <Dashboard onNavigate={navigate} />
-      case 'radar':              return <OpportunityRadar onNavigate={navigate} />
-      case 'demand-cluster':     return <DemandCluster onNavigate={navigate} />
-      case 'opportunities':      return <Opportunities onNavigate={navigate} />
-      case 'opportunity-detail': return <OpportunityDetail onNavigate={navigate} />
-      case 'ai-match':           return <AIMatch onNavigate={navigate} />
-      case 'post-need':          return <PostNeed onNavigate={navigate} />
-      case 'my-jobs':            return <MyJobs onNavigate={navigate} />
-      case 'job-workspace':      return <JobWorkspace onNavigate={navigate} />
-      case 'submit-work':        return <SubmitWork onNavigate={navigate} />
-      case 'completion':         return <Completion onNavigate={navigate} />
-      case 'earnings':           return <Earnings onNavigate={navigate} />
-      case 'economic-impact':    return <EconomicImpact onNavigate={navigate} />
-      case 'messages':           return <Messages onNavigate={navigate} />
-      case 'profile':            return <Profile onNavigate={navigate} />
-      case 'portfolio':          return <Portfolio onNavigate={navigate} />
-      case 'skill-demand':       return <SkillDemand onNavigate={navigate} />
-      case 'notifications':      return <Notifications onNavigate={navigate} />
-      case 'admin-dashboard':    return <AdminDashboard onNavigate={navigate} />
-      case 'admin-users':        return <AdminUsers onNavigate={navigate} />
-      case 'admin-jobs':         return <AdminJobs onNavigate={navigate} />
-      case 'admin-payments':     return <AdminPayments onNavigate={navigate} />
-      case 'admin-analytics':    return <AdminAnalytics onNavigate={navigate} />
+      case 'landing':            return <Landing {...props} />
+      case 'login':              return <Login {...props} />
+      case 'signup':             return <Signup {...props} />
+      case 'onboarding':         return <Onboarding {...props} />
+      case 'dashboard':          return <Dashboard {...props} />
+      case 'radar':              return <OpportunityRadar {...props} />
+      case 'demand-cluster':     return <DemandCluster {...props} />
+      case 'opportunities':      return <Opportunities {...props} />
+      case 'opportunity-detail': return <OpportunityDetail {...props} />
+      case 'ai-match':           return <AIMatch {...props} />
+      case 'post-need':          return <PostNeed {...props} />
+      case 'my-jobs':            return <MyJobs {...props} />
+      case 'job-workspace':      return <JobWorkspace {...props} />
+      case 'submit-work':        return <SubmitWork {...props} />
+      case 'completion':         return <Completion {...props} />
+      case 'earnings':           return <Earnings {...props} />
+      case 'economic-impact':    return <EconomicImpact {...props} />
+      case 'messages':           return <Messages {...props} />
+      case 'profile':            return <Profile {...props} />
+      case 'portfolio':          return <Portfolio {...props} />
+      case 'skill-demand':       return <SkillDemand {...props} />
+      case 'notifications':      return <Notifications {...props} />
+      case 'admin-dashboard':    return <AdminDashboard {...props} />
+      case 'admin-users':        return <AdminUsers {...props} />
+      case 'admin-jobs':         return <AdminJobs {...props} />
+      case 'admin-payments':     return <AdminPayments {...props} />
+      case 'admin-analytics':    return <AdminAnalytics {...props} />
     }
   }
 

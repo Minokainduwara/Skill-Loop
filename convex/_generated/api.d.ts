@@ -9,6 +9,8 @@
  */
 
 import type * as http from "../http.js";
+import type * as mutations from "../mutations.js";
+import type * as queries from "../queries.js";
 import type * as schemas_aiRequirements from "../schemas/aiRequirements.js";
 import type * as schemas_applications from "../schemas/applications.js";
 import type * as schemas_demandSignals from "../schemas/demandSignals.js";
@@ -18,6 +20,7 @@ import type * as schemas_jobDeliverables from "../schemas/jobDeliverables.js";
 import type * as schemas_jobRequests from "../schemas/jobRequests.js";
 import type * as schemas_jobs from "../schemas/jobs.js";
 import type * as schemas_matches from "../schemas/matches.js";
+import type * as schemas_messages from "../schemas/messages.js";
 import type * as schemas_notifications from "../schemas/notifications.js";
 import type * as schemas_opportunities from "../schemas/opportunities.js";
 import type * as schemas_portfolios from "../schemas/portfolios.js";
@@ -26,6 +29,7 @@ import type * as schemas_skills from "../schemas/skills.js";
 import type * as schemas_studentProfiles from "../schemas/studentProfiles.js";
 import type * as schemas_studentSkills from "../schemas/studentSkills.js";
 import type * as schemas_users from "../schemas/users.js";
+import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 
 import type {
@@ -36,6 +40,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   http: typeof http;
+  mutations: typeof mutations;
+  queries: typeof queries;
   "schemas/aiRequirements": typeof schemas_aiRequirements;
   "schemas/applications": typeof schemas_applications;
   "schemas/demandSignals": typeof schemas_demandSignals;
@@ -45,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   "schemas/jobRequests": typeof schemas_jobRequests;
   "schemas/jobs": typeof schemas_jobs;
   "schemas/matches": typeof schemas_matches;
+  "schemas/messages": typeof schemas_messages;
   "schemas/notifications": typeof schemas_notifications;
   "schemas/opportunities": typeof schemas_opportunities;
   "schemas/portfolios": typeof schemas_portfolios;
@@ -53,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   "schemas/studentProfiles": typeof schemas_studentProfiles;
   "schemas/studentSkills": typeof schemas_studentSkills;
   "schemas/users": typeof schemas_users;
+  seed: typeof seed;
   users: typeof users;
 }>;
 

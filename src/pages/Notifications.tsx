@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { Page, PageProps } from '../types'
 import {
   Badge,
@@ -7,7 +9,6 @@ import {
   Card,
   Divider,
   EmptyState,
-  NOTIFICATIONS,
   PageHead,
   SHADOW,
   SectionTitle,
@@ -31,128 +32,7 @@ interface Note {
   action: { label: string; page: Page }
 }
 
-const BASE: Note[] = [
-  {
-    id: 'n1',
-    icon: NOTIFICATIONS[0].icon,
-    title: NOTIFICATIONS[0].title,
-    body: NOTIFICATIONS[0].body,
-    time: NOTIFICATIONS[0].time,
-    tone: NOTIFICATIONS[0].tone,
-    unread: true,
-    category: 'opportunities',
-    bucket: 'Today',
-    action: { label: 'View opportunity', page: 'opportunity-detail' },
-  },
-  {
-    id: 'n2',
-    icon: NOTIFICATIONS[1].icon,
-    title: NOTIFICATIONS[1].title,
-    body: NOTIFICATIONS[1].body,
-    time: NOTIFICATIONS[1].time,
-    tone: NOTIFICATIONS[1].tone,
-    unread: true,
-    category: 'payments',
-    bucket: 'Today',
-    action: { label: 'View earnings', page: 'earnings' },
-  },
-  {
-    id: 'n3',
-    icon: NOTIFICATIONS[2].icon,
-    title: NOTIFICATIONS[2].title,
-    body: NOTIFICATIONS[2].body,
-    time: NOTIFICATIONS[2].time,
-    tone: NOTIFICATIONS[2].tone,
-    unread: true,
-    category: 'social',
-    bucket: 'Today',
-    action: { label: 'View review', page: 'profile' },
-  },
-  {
-    id: 'n4',
-    icon: '⏰',
-    title: 'Deadline reminder: Cafe Menu Redesign',
-    body: 'Due tomorrow at 5:00 PM for Nimali Jayasuriya',
-    time: '5 hours ago',
-    tone: '#FEE2E2',
-    unread: true,
-    category: 'opportunities',
-    bucket: 'Today',
-    action: { label: 'Open workspace', page: 'job-workspace' },
-  },
-  {
-    id: 'n5',
-    icon: NOTIFICATIONS[3].icon,
-    title: NOTIFICATIONS[3].title,
-    body: NOTIFICATIONS[3].body,
-    time: 'Yesterday, 6:40 PM',
-    tone: NOTIFICATIONS[3].tone,
-    unread: false,
-    category: 'insights',
-    bucket: 'Yesterday',
-    action: { label: 'Open radar', page: 'radar' },
-  },
-  {
-    id: 'n6',
-    icon: NOTIFICATIONS[4].icon,
-    title: NOTIFICATIONS[4].title,
-    body: NOTIFICATIONS[4].body,
-    time: 'Yesterday, 2:15 PM',
-    tone: NOTIFICATIONS[4].tone,
-    unread: false,
-    category: 'insights',
-    bucket: 'Yesterday',
-    action: { label: 'View portfolio', page: 'portfolio' },
-  },
-  {
-    id: 'n7',
-    icon: '🛡️',
-    title: 'Your trust score increased to 92',
-    body: 'Two verified completions and a 5-star review from Nimal Silva',
-    time: 'Yesterday, 9:05 AM',
-    tone: '#CFFAFE',
-    unread: false,
-    category: 'social',
-    bucket: 'Yesterday',
-    action: { label: 'View profile', page: 'profile' },
-  },
-  {
-    id: 'n8',
-    icon: NOTIFICATIONS[5].icon,
-    title: NOTIFICATIONS[5].title,
-    body: NOTIFICATIONS[5].body,
-    time: '2 days ago',
-    tone: NOTIFICATIONS[5].tone,
-    unread: false,
-    category: 'social',
-    bucket: 'Earlier',
-    action: { label: 'Reply', page: 'messages' },
-  },
-  {
-    id: 'n9',
-    icon: '📡',
-    title: 'Cluster of 7 requests detected in Kandy',
-    body: 'Video Editing demand spike · Rs. 21,000 combined potential',
-    time: '3 days ago',
-    tone: '#EDE9FE',
-    unread: false,
-    category: 'insights',
-    bucket: 'Earlier',
-    action: { label: 'View cluster', page: 'demand-cluster' },
-  },
-  {
-    id: 'n10',
-    icon: '🏦',
-    title: 'Withdrawal of Rs. 5,000 processed',
-    body: 'Sent to Bank of Ceylon •••• 4821 · Kandy branch',
-    time: '4 days ago',
-    tone: '#DCFCE7',
-    unread: false,
-    category: 'payments',
-    bucket: 'Earlier',
-    action: { label: 'View earnings', page: 'earnings' },
-  },
-]
+
 
 const BUCKETS: Bucket[] = ['Today', 'Yesterday', 'Earlier']
 
@@ -172,9 +52,77 @@ const PREFS: Pref[] = [
 ]
 
 export default function Notifications({ onNavigate }: PageProps) {
-  const [notes, setNotes] = useState<Note[]>(BASE)
+  const dbNotifications = useQuery(api.queries.myNotifications, {})
   const [tab, setTab] = useState('all')
   const [prefs, setPrefs] = useState<Pref[]>(PREFS)
+  const [locallyRead, setLocallyRead] = useState<string[]>([])
+
+  const formatTime = (createdAt: number) => {
+    const diffMs = Date.now() - createdAt
+    const diffMins = Math.floor(diffMs / 60000)
+    if (diffMins < 1) return 'just now'
+    if (diffMins < 60) return `${diffMins} min ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`
+    return new Date(createdAt).toLocaleDateString()
+  }
+
+  const notes: Note[] = useMemo(() => {
+    if (!dbNotifications) return []
+    return dbNotifications.map((n: any) => {
+      const diffMs = Date.now() - n.createdAt
+      let bucket: Bucket = 'Earlier'
+      if (diffMs < 24 * 3600 * 1000) {
+        bucket = 'Today'
+      } else if (diffMs < 48 * 3600 * 1000) {
+        bucket = 'Yesterday'
+      }
+
+      let icon = '🔔'
+      let tone = '#F0FDFA'
+      let actionPage: Page = 'dashboard'
+      let actionLabel = 'View'
+      switch (n.type) {
+        case 'new_match':
+          icon = '🔥'
+          tone = '#FEF3C7'
+          actionPage = 'opportunities'
+          actionLabel = 'View match'
+          break
+        case 'payment':
+          icon = '💰'
+          tone = '#DCFCE7'
+          actionPage = 'earnings'
+          actionLabel = 'View wallet'
+          break
+        case 'review':
+          icon = '⭐'
+          tone = '#FEF9C3'
+          actionPage = 'profile'
+          actionLabel = 'View review'
+          break
+        case 'opportunity':
+          icon = '🎯'
+          tone = '#EEF2FF'
+          actionPage = 'opportunities'
+          actionLabel = 'View opportunity'
+          break
+      }
+
+      return {
+        id: n._id,
+        icon,
+        title: n.title,
+        body: n.message,
+        time: formatTime(n.createdAt),
+        tone,
+        unread: !n.isRead && !locallyRead.includes(n._id),
+        category: n.type === 'payment' ? 'payments' : n.type === 'new_match' || n.type === 'opportunity' ? 'opportunities' : 'social',
+        bucket,
+        action: { label: actionLabel, page: actionPage },
+      }
+    })
+  }, [dbNotifications, locallyRead])
 
   const unreadCount = notes.filter((n) => n.unread).length
 
@@ -185,10 +133,13 @@ export default function Notifications({ onNavigate }: PageProps) {
     return notes
   }, [notes, tab])
 
-  const markRead = (id: string) =>
-    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, unread: false } : n)))
+  const markRead = (id: string) => {
+    setLocallyRead(prev => [...prev, id])
+  }
 
-  const markAll = () => setNotes((prev) => prev.map((n) => ({ ...n, unread: false })))
+  const markAll = () => {
+    setLocallyRead(notes.map(n => n.id))
+  }
 
   const togglePref = (key: string) =>
     setPrefs((prev) => prev.map((p) => (p.key === key ? { ...p, on: !p.on } : p)))
@@ -196,6 +147,16 @@ export default function Notifications({ onNavigate }: PageProps) {
   const open = (n: Note) => {
     markRead(n.id)
     onNavigate(n.action.page)
+  }
+
+  if (dbNotifications === undefined) {
+    return (
+      <Shell width={860}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', fontSize: 16, color: C.muted }}>
+          Loading notifications...
+        </div>
+      </Shell>
+    )
   }
 
   return (

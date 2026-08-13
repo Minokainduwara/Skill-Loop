@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
+import type { Id } from '../../convex/_generated/dataModel'
 import {
   AICallout,
   Avatar,
@@ -21,84 +24,6 @@ import {
   rupees,
 } from '../components/ui'
 
-const REQUIRED_SKILLS = ['Graphic Design', 'Canva', 'Social Media', 'Poster Design']
-
-interface Candidate {
-  id: string
-  rank: number
-  name: string
-  program: string
-  match: number
-  skill: number
-  availability: number
-  experience: number
-  ratingScore: number
-  rating: number
-  jobs: number
-  onTime: number
-  response: string
-  earned: number
-  skills: string[]
-  note: string
-}
-
-const CANDIDATES: Candidate[] = [
-  {
-    id: 'c1',
-    rank: 1,
-    name: 'Kasun Perera',
-    program: 'ICT Undergraduate · University of Peradeniya',
-    match: 96,
-    skill: 100,
-    availability: 95,
-    experience: 90,
-    ratingScore: 96,
-    rating: 4.8,
-    jobs: 18,
-    onTime: 100,
-    response: '12 min',
-    earned: 24500,
-    skills: ['Graphic Design', 'Canva', 'Poster Design', 'Social Media'],
-    note: 'Every required skill verified, 5 posters delivered in the last 3 months, 2.4 km from campus.',
-  },
-  {
-    id: 'c2',
-    rank: 2,
-    name: 'Nimal Silva',
-    program: 'Fine Arts Undergraduate · University of Kelaniya',
-    match: 89,
-    skill: 92,
-    availability: 88,
-    experience: 85,
-    ratingScore: 92,
-    rating: 4.6,
-    jobs: 12,
-    onTime: 92,
-    response: '35 min',
-    earned: 16200,
-    skills: ['Graphic Design', 'Illustration', 'Canva'],
-    note: 'Strongest illustration portfolio, slightly less print-production experience than the top match.',
-  },
-  {
-    id: 'c3',
-    rank: 3,
-    name: 'Sahan Fernando',
-    program: 'Media Studies Undergraduate · University of Colombo',
-    match: 84,
-    skill: 86,
-    availability: 80,
-    experience: 78,
-    ratingScore: 90,
-    rating: 4.5,
-    jobs: 9,
-    onTime: 89,
-    response: '1 hr',
-    earned: 11800,
-    skills: ['Social Media', 'Canva', 'Content Writing'],
-    note: 'Excellent social-first designer; located in Colombo so printing coordination is remote.',
-  },
-]
-
 const MEDALS: Record<number, { emoji: string; bg: string; color: string }> = {
   1: { emoji: '🥇', bg: '#FEF3C7', color: '#B45309' },
   2: { emoji: '🥈', bg: '#F1F5F9', color: '#475569' },
@@ -112,9 +37,54 @@ const FACTORS = [
   { icon: '⭐', label: 'Rating & trust', weight: '15%', text: 'Average review score, on-time delivery and verification status.' },
 ]
 
-export default function AIMatch({ onNavigate }: PageProps) {
-  const [expanded, setExpanded] = useState('c1')
+export default function AIMatch({ onNavigate, selectedOpportunityId }: PageProps) {
+  const [expanded, setExpanded] = useState('')
   const [assigned, setAssigned] = useState<string | null>(null)
+
+  const bundle = useQuery(api.queries.jobRequestBundle, {
+    jobRequestId: (selectedOpportunityId || '') as Id<'jobRequests'>,
+  })
+
+  if (bundle === undefined) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', fontSize: 16, color: C.muted }}>
+        Loading AI matches...
+      </div>
+    )
+  }
+
+  if (bundle === null) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', fontSize: 16, color: C.muted }}>
+        Job request not found.
+      </div>
+    )
+  }
+
+  const jobRequest = bundle.jobRequest
+  const requester = bundle.requester
+  const requiredSkills = bundle.aiRequirement?.skills.map((s: any) => s.name) || ['Graphic Design', 'Canva']
+
+  const candidates = bundle.matches.map((m: any, i: number) => ({
+    id: m.student._id,
+    rank: i + 1,
+    name: m.student.username,
+    program: m.profile?.degree || 'Student',
+    match: Math.round(m.match.totalScore * 100),
+    skill: Math.round(m.match.skillScore * 100),
+    availability: Math.round(m.match.availabilityScore * 100),
+    experience: Math.round(m.match.experienceScore * 100),
+    ratingScore: Math.round(m.match.ratingScore * 100),
+    rating: m.profile?.averageRating || 5.0,
+    jobs: m.profile?.completedJobs || 0,
+    onTime: 100,
+    response: '12 min',
+    earned: m.profile?.totalEarnings || 0,
+    skills: m.skills.map((s: any) => s.skill.name),
+    note: m.match.matchReason || 'Strong candidate with verified credentials.',
+  }))
+
+  const deadlineText = jobRequest.deadline ? `${Math.round((jobRequest.deadline - Date.now()) / (24 * 3600 * 1000))} days` : '3 days'
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -130,7 +100,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
         {/* ----------------------------------------------- request context */}
         <Card style={{ marginBottom: 22, animation: 'sl-rise .5s both' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <Avatar name="University Robotics Society" size={48} emoji="🤖" />
+            <Avatar name={requester?.username || "Client"} size={48} emoji="🤖" />
             <div style={{ flex: 1, minWidth: 240 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: C.faint, letterSpacing: 0.8 }}>THE REQUEST</div>
               <blockquote
@@ -145,10 +115,10 @@ export default function AIMatch({ onNavigate }: PageProps) {
                   letterSpacing: -0.2,
                 }}
               >
-                "Need a promotional poster for our Robotics Exhibition."
+                "{jobRequest.title}"
               </blockquote>
               <div style={{ fontSize: 13, color: C.muted, marginTop: 10 }}>
-                University Robotics Society · Peradeniya, Kandy · posted 4 minutes ago
+                {requester?.username || 'Client'} · {jobRequest.location || 'Remote'} · posted just now
               </div>
             </div>
           </div>
@@ -161,7 +131,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
                 Required skills extracted
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {REQUIRED_SKILLS.map((s, i) => (
+                {requiredSkills.map((s: string, i: number) => (
                   <span
                     key={s}
                     style={{
@@ -181,9 +151,9 @@ export default function AIMatch({ onNavigate }: PageProps) {
               </div>
             </div>
             <Grid min={165} gap={12}>
-              <InfoTile icon="💰" label="Budget" value={rupees(2000)} />
-              <InfoTile icon="⏳" label="Deadline" value="3 days" tone={C.warning} />
-              <InfoTile icon="📍" label="Radius" value="Within 5 km" tone={C.accent} />
+              <InfoTile icon="💰" label="Budget" value={rupees(jobRequest.budgetMin || 2000)} />
+              <InfoTile icon="⏳" label="Deadline" value={deadlineText} tone={C.warning} />
+              <InfoTile icon="📍" label="Radius" value={jobRequest.isRemote ? 'Remote' : 'Within 5 km'} tone={C.accent} />
             </Grid>
           </div>
 
@@ -196,7 +166,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
         </Card>
 
         <SectionTitle
-          title="3 strong matches from 47 candidates scanned"
+          title={`${candidates.length} strong match${candidates.length > 1 ? 'es' : ''} from candidates scanned`}
           subtitle="Ranked by weighted match score · scan completed in 1.8 seconds"
           action={
             <Badge color={C.accent} bg="#CCFBF1" dot>
@@ -206,8 +176,8 @@ export default function AIMatch({ onNavigate }: PageProps) {
         />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 30 }}>
-          {CANDIDATES.map((c, i) => {
-            const medal = MEDALS[c.rank]
+          {candidates.map((c: any, i: number) => {
+            const medal = MEDALS[c.rank] || { emoji: '🎖️', bg: '#F1F5F9', color: '#475569' }
             const open = expanded === c.id
             const isAssigned = assigned === c.id
             return (
@@ -303,7 +273,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
                           />
                         </div>
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                          {c.skills.map((s) => (
+                          {c.skills.map((s: string) => (
                             <span
                               key={s}
                               style={{
@@ -311,8 +281,8 @@ export default function AIMatch({ onNavigate }: PageProps) {
                                 fontWeight: 700,
                                 padding: '4px 10px',
                                 borderRadius: 999,
-                                color: REQUIRED_SKILLS.includes(s) ? C.primaryDark : C.muted,
-                                background: REQUIRED_SKILLS.includes(s) ? '#EEF2FF' : C.subtle,
+                                color: requiredSkills.includes(s) ? C.primaryDark : C.muted,
+                                background: requiredSkills.includes(s) ? '#EEF2FF' : C.subtle,
                               }}
                             >
                               {s}
@@ -343,7 +313,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
                           ✅ {c.name} has been invited and assigned
                         </div>
                         <p style={{ margin: '6px 0 14px', fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
-                          Rs. 2,000 moved into escrow. A shared workspace has been created for the poster brief.
+                          Rs. {jobRequest.budgetMin || 2000} moved into escrow. A shared workspace has been created for the poster brief.
                         </p>
                         <Btn size="sm" onClick={() => onNavigate('job-workspace')}>
                           Open Job Workspace
@@ -352,7 +322,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
                     ) : (
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
                         <Btn onClick={() => setAssigned(c.id)}>Invite / Assign</Btn>
-                        <Btn variant="secondary" onClick={() => onNavigate('profile')}>
+                        <Btn variant="secondary" onClick={() => onNavigate('profile', { studentId: c.id })}>
                           View Profile
                         </Btn>
                         <Btn variant="ghost" onClick={() => onNavigate('messages')}>
@@ -366,6 +336,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
             )
           })}
         </div>
+
 
         {/* --------------------------------------------------- explainer */}
         <Card>

@@ -1,7 +1,36 @@
 import { useEffect, useRef, useState } from 'react'
 import { useClerk, useUser } from '@clerk/clerk-react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { NavProps, Page } from '../types'
-import { Avatar, Badge, Btn, C, Logo, NOTIFICATIONS, SHADOW, USER } from './ui'
+import { Avatar, Badge, Btn, C, Logo, SHADOW } from './ui'
+
+function getNotificationVisuals(type: string) {
+  switch (type) {
+    case 'new_match':
+      return { icon: '🔥', tone: '#FEF3C7' }
+    case 'payment':
+      return { icon: '💰', tone: '#DCFCE7' }
+    case 'review':
+      return { icon: '⭐', tone: '#FEF9C3' }
+    case 'opportunity':
+      return { icon: '🎯', tone: '#EEF2FF' }
+    case 'system':
+      return { icon: '⚙️', tone: '#F3F4F6' }
+    default:
+      return { icon: '🔔', tone: '#F0FDFA' }
+  }
+}
+
+function formatTime(createdAt: number) {
+  const diffMs = Date.now() - createdAt
+  const diffMins = Math.floor(diffMs / 60000)
+  if (diffMins < 1) return 'just now'
+  if (diffMins < 60) return `${diffMins} min ago`
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+  return new Date(createdAt).toLocaleDateString()
+}
 
 const LINKS: { key: Page; label: string }[] = [
   { key: 'radar', label: 'Discover' },
@@ -19,8 +48,11 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
   const clerk = useClerk()
   const { user, isLoaded, isSignedIn } = useUser()
   const authed = isLoaded && isSignedIn
-  const unread = NOTIFICATIONS.filter((n) => n.unread).length
-  const displayName = user?.firstName || user?.username || USER.name
+  const dbUser = useQuery(api.queries.me)
+  const profileData = useQuery(api.queries.myStudentProfile)
+  const notifications = useQuery(api.queries.myNotifications, {})
+  const unread = notifications ? notifications.filter((n: any) => !n.isRead).length : 0
+  const displayName = user?.firstName || user?.username || dbUser?.username || 'User'
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -198,41 +230,44 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
                       <Badge color={C.primary}>{unread} new</Badge>
                     </div>
                     <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-                      {NOTIFICATIONS.slice(0, 4).map((n, i) => (
-                        <div
-                          key={i}
-                          onClick={() => go('notifications')}
-                          className="sl-link"
-                          style={{
-                            display: 'flex',
-                            gap: 12,
-                            padding: '13px 16px',
-                            cursor: 'pointer',
-                            borderBottom: `1px solid ${C.subtle}`,
-                            background: n.unread ? '#FAFBFF' : C.surface,
-                          }}
-                        >
+                      {(notifications || []).slice(0, 4).map((n: any, i: number) => {
+                        const { icon, tone } = getNotificationVisuals(n.type)
+                        return (
                           <div
+                            key={i}
+                            onClick={() => go('notifications')}
+                            className="sl-link"
                             style={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: 10,
-                              background: n.tone,
                               display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: 16,
-                              flexShrink: 0,
+                              gap: 12,
+                              padding: '13px 16px',
+                              cursor: 'pointer',
+                              borderBottom: `1px solid ${C.subtle}`,
+                              background: !n.isRead ? '#FAFBFF' : C.surface,
                             }}
                           >
-                            {n.icon}
+                            <div
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 10,
+                                background: tone,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 16,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {icon}
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{n.title}</div>
+                              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>{formatTime(n.createdAt)}</div>
+                            </div>
                           </div>
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{n.title}</div>
-                            <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>{n.time}</div>
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                     <button
                       onClick={() => go('notifications')}
@@ -296,7 +331,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
                     <div style={{ padding: 16, borderBottom: `1px solid ${C.border}` }}>
                       <div style={{ fontSize: 14, fontWeight: 800 }}>{displayName}</div>
                       <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2 }}>
-                        Trust Score {USER.trust}/100 · {USER.rating} ★
+                        Trust Score {profileData?.profile?.profileCompletion || 92}/100 · {profileData?.profile?.averageRating || 4.8} ★
                       </div>
                     </div>
                     {(

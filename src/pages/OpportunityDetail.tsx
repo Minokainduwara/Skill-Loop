@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
+import type { Id } from '../../convex/_generated/dataModel'
 import {
   AICallout,
   Avatar,
@@ -21,7 +24,6 @@ import {
   rupees,
 } from '../components/ui'
 
-const SKILLS = ['Graphic Design', 'Canva', 'Social Media', 'Poster Design']
 
 const DELIVERABLES = [
   'One A2 print-ready poster (300 dpi, CMYK, with 3 mm bleed)',
@@ -50,9 +52,34 @@ const SIMILAR = [
   { title: 'Product Photography — Handmade Batik', budget: 5200, match: 76, meta: '6.4 km · 13 days left' },
 ]
 
-export default function OpportunityDetail({ onNavigate }: PageProps) {
+export default function OpportunityDetail({ onNavigate, selectedOpportunityId }: PageProps) {
   const [accepted, setAccepted] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  const oppBundle = useQuery(api.queries.opportunityDetail, {
+    opportunityId: selectedOpportunityId as Id<'opportunities'>
+  })
+
+  if (oppBundle === undefined) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', fontSize: 16, color: C.muted }}>
+        Loading opportunity details...
+      </div>
+    )
+  }
+
+  if (oppBundle === null) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', fontSize: 16, color: C.muted }}>
+        Opportunity not found.
+      </div>
+    )
+  }
+
+  const { opportunity, skills } = oppBundle
+  const budgetVal = opportunity.estimatedBudgetMax || opportunity.estimatedBudgetMin || 2000
+  const matchScore = opportunity.demandScore || 96
+  const deadlineText = opportunity.expiresAt ? new Date(opportunity.expiresAt).toLocaleDateString() : 'August 15 · 3 days left'
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -60,8 +87,8 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
         <PageHead
           onBack={() => onNavigate('opportunities')}
           backLabel="Back to Opportunities"
-          title="Robotics Exhibition Poster"
-          subtitle="Posted 2 minutes ago by University Robotics Society · Peradeniya, Kandy"
+          title={opportunity.title}
+          subtitle={`Posted ${new Date(opportunity.createdAt).toLocaleDateString()} · Status: ${opportunity.status}`}
         />
 
         <div
@@ -79,7 +106,7 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
             <Card style={{ animation: 'sl-rise .5s both' }}>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
-                <MatchBadge pct={96} />
+                <MatchBadge pct={matchScore} />
                 <StatusBadge status="Open" />
                 <Badge color={C.muted} bg={C.subtle}>
                   Quick Task
@@ -90,8 +117,8 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
               </div>
 
               <Grid min={170} gap={12}>
-                <InfoTile icon="💰" label="Budget" value={rupees(2000)} />
-                <InfoTile icon="🗓️" label="Deadline" value="August 15 · 3 days left" tone={C.warning} />
+                <InfoTile icon="💰" label="Budget" value={rupees(budgetVal)} />
+                <InfoTile icon="🗓️" label="Deadline" value={deadlineText} tone={C.warning} />
                 <InfoTile icon="📍" label="Location" value="2.4 km away" tone={C.accent} />
               </Grid>
 
@@ -99,11 +126,7 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
 
               <h2 style={{ margin: '0 0 10px', fontSize: 17, fontWeight: 800, color: C.text }}>The brief</h2>
               <p style={{ margin: 0, fontSize: 14.5, color: C.muted, lineHeight: 1.75 }}>
-                "Need a modern promotional poster for our upcoming Robotics Exhibition. The design will be used on
-                social media and printed posters around the Faculty of Engineering." We expect around 900 visitors
-                across two days, so the poster has to read clearly from a distance while still looking good in a
-                phone feed. Bold type, one strong focal image of a robot arm, and generous breathing room work best —
-                previous years leaned too heavy on stock clip art.
+                {opportunity.description}
               </p>
 
               <div style={{ marginTop: 20 }}>
@@ -120,9 +143,9 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
 
               <h3 style={{ margin: '0 0 10px', fontSize: 14.5, fontWeight: 800, color: C.text }}>Required skills</h3>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {SKILLS.map((s) => (
+                {skills.map((s: any) => (
                   <span
-                    key={s}
+                    key={s._id}
                     style={{
                       fontSize: 12.5,
                       fontWeight: 700,
@@ -133,7 +156,7 @@ export default function OpportunityDetail({ onNavigate }: PageProps) {
                       border: '1px solid #C7D2FE',
                     }}
                   >
-                    {s}
+                    {s.name}
                   </span>
                 ))}
               </div>

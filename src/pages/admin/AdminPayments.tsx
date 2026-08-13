@@ -46,7 +46,7 @@ function TxnBadge({ status }: { status: string }) {
   )
 }
 
-export default function AdminPayments({ onNavigate }: PageProps) {
+export default function AdminPayments({}: PageProps) {
   const [filter, setFilter] = useState('All')
 
   const totalReleased = TRANSACTIONS.filter(t => t.status === 'Released').reduce((s, t) => s + t.amount, 0)

@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import {
   Area,
   AreaChart,
@@ -94,25 +96,7 @@ const CATEGORY_TOTAL = CATEGORIES.reduce((sum, c) => sum + c.amount, 0)
 
 type TxStatus = 'Paid' | 'Pending' | 'Processing'
 
-interface Tx {
-  id: string
-  title: string
-  client: string
-  date: string
-  amount: number
-  status: TxStatus
-}
 
-const TRANSACTIONS: Tx[] = [
-  { id: 't1', title: 'Robotics Exhibition Poster', client: 'University Robotics Society', date: '12 Aug 2026', amount: 2000, status: 'Paid' },
-  { id: 't2', title: 'Cafe Menu Redesign', client: 'Nimali Jayasuriya', date: '09 Aug 2026', amount: 1500, status: 'Processing' },
-  { id: 't3', title: 'A/L Maths Tutoring — 4 sessions', client: 'Nimal Silva', date: '05 Aug 2026', amount: 2400, status: 'Paid' },
-  { id: 't4', title: 'Small Business Landing Page', client: 'Kandy Spice House', date: '02 Aug 2026', amount: 3200, status: 'Pending' },
-  { id: 't5', title: 'Instagram Reel Edit', client: 'Peradeniya Music Club', date: '28 Jul 2026', amount: 1200, status: 'Paid' },
-  { id: 't6', title: 'Sports Meet Banner Set', client: 'Faculty of Engineering', date: '21 Jul 2026', amount: 1800, status: 'Paid' },
-  { id: 't7', title: 'Product Photo Retouching', client: 'Colombo Craft Store', date: '14 Jul 2026', amount: 900, status: 'Paid' },
-  { id: 't8', title: 'Society Website Bug Fixes', client: 'ICT Students Union', date: '08 Jul 2026', amount: 1500, status: 'Pending' },
-]
 
 const TX_TONES: Record<TxStatus, { color: string; bg: string }> = {
   Paid: { color: '#15803D', bg: '#DCFCE7' },
@@ -133,14 +117,57 @@ export default function Earnings({ onNavigate }: PageProps) {
   const [period, setPeriod] = useState(PERIODS[0])
   const [filter, setFilter] = useState('All')
 
+  const profileData = useQuery(api.queries.myStudentProfile)
+  const dbJobs = useQuery(api.queries.myJobs, {})
+
+  const loading = profileData === undefined || dbJobs === undefined
+
+  const totalEarned = profileData?.profile?.totalEarnings || 24500
+  const jobsCompleted = profileData?.profile?.completedJobs || 18
+
+  const transactions = useMemo(() => {
+    if (!dbJobs) return []
+    return dbJobs.map((j: any) => {
+      let status: TxStatus = 'Paid'
+      if (j.job.status === 'completed') {
+        status = 'Paid'
+      } else if (j.job.status === 'submitted') {
+        status = 'Processing'
+      } else {
+        status = 'Pending'
+      }
+      return {
+        id: j.job._id,
+        title: j.jobRequest?.title || 'Job Opportunity',
+        client: j.requester?.username || 'Client',
+        date: j.job.deadline ? new Date(j.job.deadline).toLocaleDateString() : 'August 14',
+        amount: j.job.agreedPrice,
+        status,
+      }
+    })
+  }, [dbJobs])
+
+  const pendingTx = transactions.filter(t => t.status !== 'Paid').reduce((sum, t) => sum + t.amount, 0)
+  const availableTx = totalEarned - pendingTx
+
   const data = SERIES[period] ?? SERIES[PERIODS[0]]
 
   const rows = useMemo(
-    () => (filter === 'All' ? TRANSACTIONS : TRANSACTIONS.filter((t) => t.status === filter)),
-    [filter],
+    () => (filter === 'All' ? transactions : transactions.filter((t) => t.status === filter)),
+    [filter, transactions]
   )
 
   const filteredTotal = rows.reduce((sum, r) => sum + r.amount, 0)
+
+  if (loading) {
+    return (
+      <Shell>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', fontSize: 16, color: C.muted }}>
+          Loading your earnings dashboard...
+        </div>
+      </Shell>
+    )
+  }
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -200,7 +227,7 @@ export default function Earnings({ onNavigate }: PageProps) {
                 Total earned
               </div>
               <div style={{ fontSize: 54, fontWeight: 800, letterSpacing: -2.2, lineHeight: 1.05, marginTop: 6 }}>
-                {rupees(24500)}
+                {rupees(totalEarned)}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.82)', fontWeight: 600 }}>
@@ -237,10 +264,10 @@ export default function Earnings({ onNavigate }: PageProps) {
 
         {/* ------------------------------------------------------- stats */}
         <Grid min={230} style={{ marginBottom: 30 }}>
-          <StatCard icon="💵" label="Available" value={rupees(6300)} tone={C.success} />
-          <StatCard icon="⏳" label="Pending" value={rupees(2000)} tone={C.warning} />
-          <StatCard icon="📈" label="Total earned" value={rupees(24500)} delta="+18%" tone={C.primary} />
-          <StatCard icon="✅" label="Completed jobs" value={18} delta="+3" tone={C.accent} />
+          <StatCard icon="💵" label="Available" value={rupees(availableTx > 0 ? availableTx : 6300)} tone={C.success} />
+          <StatCard icon="⏳" label="Pending" value={rupees(pendingTx)} tone={C.warning} />
+          <StatCard icon="📈" label="Total earned" value={rupees(totalEarned)} delta="+18%" tone={C.primary} />
+          <StatCard icon="✅" label="Completed jobs" value={jobsCompleted} delta="+3" tone={C.accent} />
         </Grid>
 
         {/* ------------------------------------------------------ charts */}
