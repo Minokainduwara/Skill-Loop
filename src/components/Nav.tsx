@@ -12,6 +12,7 @@ const LINKS: { key: Page; label: string }[] = [
   { key: 'messages', label: 'Messages' },
   { key: 'earnings', label: 'Earnings' },
   { key: 'portfolio', label: 'Portfolio' },
+  { key: 'onboarding', label: 'Build My Profile' },
 ]
 
 export default function Nav({ onNavigate, currentPage }: NavProps) {
@@ -65,7 +66,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
           gap: 20,
         }}
       >
-        <div style={{ cursor: 'pointer' }} onClick={() => go(authed ? 'dashboard' : 'landing')}>
+        <div style={{ cursor: 'pointer' }} onClick={() => go('landing')}>
           <Logo />
         </div>
 
