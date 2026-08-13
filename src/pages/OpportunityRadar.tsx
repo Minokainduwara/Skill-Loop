@@ -30,8 +30,8 @@ const LEVEL_TONE: Record<Level, { color: string; bg: string; blip: string }> = {
 export default function OpportunityRadar({ onNavigate }: PageProps) {
   const [selected, setSelected] = useState<string>('design')
   
-  const CLUSTERS = useQuery(api.dashboardMock.getClusters) || []
-  const REQUESTS = useQuery(api.dashboardMock.getRequests) || []
+  const CLUSTERS = useQuery(api.opportunities.getClusters) || []
+  const REQUESTS = useQuery(api.opportunities.getRequests) || []
 
   const active = CLUSTERS.find((c: any) => c.key === selected) ?? CLUSTERS[0]
 
@@ -399,7 +399,7 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
               <MiniStat label="Requests" value={String(active.requests)} tone={C.primary} />
               <MiniStat label="Market value" value={rupees(active.value)} tone={C.success} />
               <MiniStat label="Matching students" value={String(active.students)} tone={C.accent} />
-              <MiniStat label="Demand level" value={active.level} tone={LEVEL_TONE[active.level].color} />
+              <MiniStat label="Demand level" value={active.level} tone={LEVEL_TONE[active.level as Level].color} />
             </Grid>
             <div style={{ marginTop: 16 }}>
               <Btn size="lg" full onClick={() => onNavigate('demand-cluster')}>

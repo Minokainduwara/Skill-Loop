@@ -1,3 +1,4 @@
+import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { getCurrentUserOrThrow } from "./users";
 import { requireRole } from "./lib/roles";
@@ -45,6 +46,23 @@ export const opportunityFeed = query({
       const skills = await Promise.all((requirements?.requiredSkills ?? []).map((id) => ctx.db.get("skills", id)));
       return { ...request, requester, skills: skills.filter((skill) => skill !== null), requirements };
     }));
+  },
+});
+
+/** Single opportunity details with requirements and requester */
+export const opportunityDetail = query({
+  args: { jobRequestId: v.id("jobRequests") },
+  handler: async (ctx, { jobRequestId }) => {
+    const request = await ctx.db.get("jobRequests", jobRequestId);
+    if (!request) return null;
+    
+    const [requester, requirements] = await Promise.all([
+      ctx.db.get("users", request.requesterId),
+      ctx.db.query("aiRequirements").withIndex("byJob", (q) => q.eq("jobRequestId", request._id)).first(),
+    ]);
+    
+    const skills = await Promise.all((requirements?.requiredSkills ?? []).map((id) => ctx.db.get("skills", id)));
+    return { ...request, requester, skills: skills.filter((skill) => skill !== null), requirements };
   },
 });
 

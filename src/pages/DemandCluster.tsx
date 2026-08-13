@@ -113,7 +113,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                       </div>
                       <div style={{ fontSize: 11.5, color: C.faint, fontWeight: 700 }}>Budget</div>
                     </div>
-                    <Btn variant="secondary" size="sm" onClick={() => onNavigate('opportunity-detail')}>
+                    <Btn variant="secondary" size="sm" onClick={() => onNavigate('opportunity-detail', { jobRequestId: r.id })}>
                       View
                     </Btn>
                   </div>

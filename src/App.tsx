@@ -57,7 +57,7 @@ export default function App() {
       case 'radar':              return <OpportunityRadar onNavigate={navigate} />
       case 'demand-cluster':     return <DemandCluster onNavigate={navigate} />
       case 'opportunities':      return <Opportunities onNavigate={navigate} />
-      case 'opportunity-detail': return <OpportunityDetail onNavigate={navigate} />
+      case 'opportunity-detail': return <OpportunityDetail onNavigate={navigate} data={pageData} />
       case 'ai-match':           return <AIMatch onNavigate={navigate} />
       case 'post-need':          return <PostNeed onNavigate={navigate} />
       case 'my-jobs':            return <MyJobs onNavigate={navigate} />

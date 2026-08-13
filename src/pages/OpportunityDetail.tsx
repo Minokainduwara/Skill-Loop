@@ -24,44 +24,18 @@ import {
   rupees,
 } from '../components/ui'
 
-const SKILLS = ['Graphic Design', 'Canva', 'Social Media', 'Poster Design']
-
-const DELIVERABLES = [
-  'One A2 print-ready poster (300 dpi, CMYK, with 3 mm bleed)',
-  'One square social media version (1080 × 1080) for Instagram and Facebook',
-  'One story version (1080 × 1920) with space for the event date overlay',
-  'Editable source file (Canva link or .PSD) handed over on completion',
-  'Two rounds of revisions included within the agreed timeline',
-]
-
-const REQUIREMENTS = [
-  'Use the Society colour palette — deep indigo and teal — from the brand sheet',
-  'Include the university crest and the three sponsor logos supplied',
-  'Sinhala and English headline treatment, English body text',
-  'Deliver a first draft within 36 hours so printing can be booked in Kandy',
-]
-
-const ATTACHMENTS = [
-  { icon: '📄', name: 'robotics-exhibition-brief.pdf', size: '412 KB' },
-  { icon: '🗂️', name: 'society-logo-assets.zip', size: '2.1 MB' },
-  { icon: '🎨', name: 'brand-colours-sheet.png', size: '188 KB' },
-]
-
-const SIMILAR = [
-  { title: 'Social Media Kit for Fresher Night', budget: 7500, match: 88, meta: '2.1 km · 9 days left' },
-  { title: 'CV & Cover Letter Designer', budget: 1500, match: 84, meta: '0.8 km · 2 days left' },
-  { title: 'Product Photography — Handmade Batik', budget: 5200, match: 76, meta: '6.4 km · 13 days left' },
-]
+// Removed all mock data
 
 export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const [saved, setSaved] = useState(false)
   const jobRequestId = data?.jobRequestId as Id<"jobRequests"> | undefined
-  const jobRequest = useQuery(api.jobRequests.get, jobRequestId ? { jobRequestId } : 'skip')
+  const detail = useQuery(api.frontend.opportunityDetail, jobRequestId ? { jobRequestId } : 'skip')
+  const jobRequest = detail ? { _id: detail._id, title: detail.title, budgetMax: detail.budgetMax } : null
   const myApplications = useQuery(api.applications.listMine)
   const applyMutation = useMutation(api.applications.apply)
   
   // Check if we have already applied
-  const application = myApplications?.find(a => a.jobRequestId === jobRequest?._id)
+  const application = myApplications?.find(a => a.jobRequestId === jobRequestId)
   const applied = !!application
   const accepted = application?.status === 'accepted'
 
@@ -80,8 +54,8 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
         <PageHead
           onBack={() => onNavigate('opportunities')}
           backLabel="Back to Opportunities"
-          title={jobRequest ? jobRequest.title : "Robotics Exhibition Poster"}
-          subtitle={`Posted just now by Requester · Peradeniya, Kandy`}
+          title={detail ? detail.title : "Loading Opportunity..."}
+          subtitle={`Posted by ${detail?.requester?.username ?? 'Requester'} · ${detail?.location ?? 'Remote'}`}
         />
 
         <div
@@ -110,38 +84,32 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
               </div>
 
               <Grid min={170} gap={12}>
-                <InfoTile icon="💰" label="Budget" value={rupees(jobRequest?.budgetMax ?? 2000)} />
-                <InfoTile icon="🗓️" label="Deadline" value="August 15 · 3 days left" tone={C.warning} />
-                <InfoTile icon="📍" label="Location" value="2.4 km away" tone={C.accent} />
+                <InfoTile icon="💰" label="Budget" value={rupees(detail?.budgetMax ?? detail?.budgetMin ?? 0)} />
+                <InfoTile icon="🗓️" label="Deadline" value={detail?.deadline ? new Date(detail.deadline).toLocaleDateString() : 'Flexible'} tone={C.warning} />
+                <InfoTile icon="📍" label="Location" value={detail?.location ?? 'Remote'} tone={C.accent} />
               </Grid>
 
               <Divider />
 
               <h2 style={{ margin: '0 0 10px', fontSize: 17, fontWeight: 800, color: C.text }}>The brief</h2>
               <p style={{ margin: 0, fontSize: 14.5, color: C.muted, lineHeight: 1.75 }}>
-                {jobRequest?.description || `"Need a modern promotional poster for our upcoming Robotics Exhibition. The design will be used on
-                social media and printed posters around the Faculty of Engineering." We expect around 900 visitors
-                across two days, so the poster has to read clearly from a distance while still looking good in a
-                phone feed.`}
+                {detail?.description || 'Loading description...'}
               </p>
 
-              <div style={{ marginTop: 20 }}>
-                <h3 style={{ margin: '0 0 10px', fontSize: 14.5, fontWeight: 800, color: C.text }}>Deliverables</h3>
-                <BulletList items={DELIVERABLES} tone={C.primary} />
-              </div>
-
-              <div style={{ marginTop: 20 }}>
-                <h3 style={{ margin: '0 0 10px', fontSize: 14.5, fontWeight: 800, color: C.text }}>Requirements</h3>
-                <BulletList items={REQUIREMENTS} tone={C.accent} />
-              </div>
+              {detail?.requirements?.suggestedSkills && detail.requirements.suggestedSkills.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <h3 style={{ margin: '0 0 10px', fontSize: 14.5, fontWeight: 800, color: C.text }}>AI Suggested Needs</h3>
+                  <BulletList items={["Analysis suggests the following would be helpful: " + detail.requirements.suggestedSkills.join(', ')]} tone={C.primary} />
+                </div>
+              )}
 
               <Divider />
 
               <h3 style={{ margin: '0 0 10px', fontSize: 14.5, fontWeight: 800, color: C.text }}>Required skills</h3>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {SKILLS.map((s) => (
+                {detail?.skills?.map((s) => (
                   <span
-                    key={s}
+                    key={s._id}
                     style={{
                       fontSize: 12.5,
                       fontWeight: 700,
@@ -152,36 +120,8 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
                       border: '1px solid #C7D2FE',
                     }}
                   >
-                    {s}
+                    {s.name}
                   </span>
-                ))}
-              </div>
-            </Card>
-
-            <Card>
-              <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 800, color: C.text }}>Attachments</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {ATTACHMENTS.map((a) => (
-                  <div
-                    key={a.name}
-                    className="sl-press"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '12px 14px',
-                      borderRadius: 12,
-                      border: `1px solid ${C.border}`,
-                      background: C.bg,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>{a.icon}</span>
-                    <span style={{ fontSize: 13.5, fontWeight: 700, color: C.text, flex: 1, minWidth: 0 }}>
-                      {a.name}
-                    </span>
-                    <span style={{ fontSize: 12, color: C.faint, fontWeight: 700 }}>{a.size}</span>
-                  </div>
                 ))}
               </div>
             </Card>
@@ -189,57 +129,23 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
             <Card>
               <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 800, color: C.text }}>About the client</h3>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-                <Avatar name="University Robotics Society" size={52} emoji="🤖" />
+                <Avatar name={detail?.requester?.username ?? "Requester"} size={52} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 15.5, fontWeight: 800, color: C.text }}>
-                      University Robotics Society
+                      {detail?.requester?.username ?? "Requester"}
                     </span>
                     <Verified label="Verified Requester" />
                   </div>
                   <div style={{ marginTop: 6, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                     <Stars rating={4.8} />
-                    <span style={{ fontSize: 12.5, color: C.muted }}>12 jobs posted</span>
-                    <span style={{ fontSize: 12.5, color: C.muted }}>100% payment rate</span>
+                    <span style={{ fontSize: 12.5, color: C.muted }}>Verified User</span>
                   </div>
                 </div>
               </div>
               <p style={{ margin: '14px 0 0', fontSize: 13.5, color: C.muted, lineHeight: 1.7 }}>
-                Member since January 2024 · Faculty of Engineering, University of Peradeniya. Usually replies within
-                40 minutes and has released every escrow payment on time.
+                {detail?.requester?.bio || "Requester on SkillLoop."}
               </p>
-            </Card>
-
-            <Card>
-              <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 800, color: C.text }}>
-                Similar opportunities
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {SIMILAR.map((s) => (
-                  <div
-                    key={s.title}
-                    onClick={() => onNavigate('opportunities')}
-                    className="sl-press"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '13px 14px',
-                      borderRadius: 12,
-                      border: `1px solid ${C.border}`,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 800, color: C.text }}>{s.title}</div>
-                      <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>
-                        {rupees(s.budget)} · {s.meta}
-                      </div>
-                    </div>
-                    <MatchBadge pct={s.match} size="sm" />
-                  </div>
-                ))}
-              </div>
             </Card>
           </div>
 
@@ -262,9 +168,8 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
               <MetricBar label="Rating" value={90} color={C.warning} />
 
               <div style={{ marginTop: 6 }}>
-                <AICallout title="Why you matched" compact>
-                  All four required skills appear in your verified profile, you have 6 free hours this week, and you
-                  have delivered 5 posters with an average 4.8-star rating.
+                <AICallout title="AI Analysis" compact>
+                  {detail?.requirements?.rawResponse ?? "No AI analysis available for this request."}
                 </AICallout>
               </div>
             </Card>
@@ -312,7 +217,7 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
                 </div>
               ) : (
                 <>
-                  <Btn full size="lg" onClick={handleApply} disabled={!jobRequest}>
+                  <Btn full size="lg" onClick={handleApply} disabled={!detail}>
                     Apply for Opportunity
                   </Btn>
                   <div style={{ height: 10 }} />
