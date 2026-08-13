@@ -5,15 +5,7 @@ import { api } from '../../convex/_generated/api'
 import type { NavProps, Page } from '../types'
 import { Avatar, Badge, Btn, C, Logo, NOTIFICATIONS, SHADOW, USER } from './ui'
 
-const LINKS: { key: Page; label: string }[] = [
-  { key: 'radar', label: 'Discover' },
-  { key: 'opportunities', label: 'Opportunities' },
-  { key: 'my-jobs', label: 'My Jobs' },
-  { key: 'messages', label: 'Messages' },
-  { key: 'earnings', label: 'Earnings' },
-  { key: 'portfolio', label: 'Portfolio' },
-  { key: 'onboarding', label: 'Build My Profile' },
-]
+// Removed static LINKS
 
 export default function Nav({ onNavigate, currentPage }: NavProps) {
   const [bell, setBell] = useState(false)
@@ -26,6 +18,17 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
   const isAdmin = currentUser?.role === 'admin'
   const unread = NOTIFICATIONS.filter((n) => n.unread).length
   const displayName = user?.firstName || user?.username || USER.name
+
+  const LINKS: { key: Page; label: string }[] = [
+    { key: 'radar', label: 'Discover' },
+    { key: 'opportunities', label: 'Opportunities' },
+    ...(currentUser?.role === 'requester' 
+      ? [{ key: 'requester-dashboard' as Page, label: 'My Requests' }] 
+      : [{ key: 'student-applications' as Page, label: 'My Applications' }]),
+    { key: 'messages', label: 'Messages' },
+    { key: 'earnings', label: 'Earnings' },
+    ...(currentUser?.role === 'requester' ? [] : [{ key: 'portfolio' as Page, label: 'Portfolio' }]),
+  ]
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -66,7 +69,7 @@ export default function Nav({ onNavigate, currentPage }: NavProps) {
           gap: 20,
         }}
       >
-        <div style={{ cursor: 'pointer' }} onClick={() => go('landing')}>
+        <div style={{ cursor: 'pointer' }} onClick={() => go(authed ? (currentUser?.role === 'requester' ? 'requester-dashboard' : 'dashboard') : 'landing')}>
           <Logo />
         </div>
 

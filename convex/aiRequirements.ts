@@ -85,6 +85,20 @@ export const setFromAnalysis = mutation({
       rawResponse: fields.rawResponse,
       createdAt: Date.now(),
     });
+
+    await ctx.db.insert("opportunities", {
+      title: request.title,
+      description: request.description,
+      category: fields.category ?? request.category ?? "General",
+      requiredSkills: fields.requiredSkills ?? [],
+      estimatedBudgetMin: request.budgetMin,
+      estimatedBudgetMax: request.budgetMax,
+      demandScore: 10,
+      source: "job_requests",
+      status: "active",
+      createdAt: Date.now(),
+    });
+
     return await ctx.db.get("aiRequirements", id);
   },
 });

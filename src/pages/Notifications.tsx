@@ -31,7 +31,7 @@ interface Note {
   unread: boolean
   category: Category
   bucket: Bucket
-  action: { label: string; page: Page }
+  action: { label: string; page: Page; data?: any }
 }
 
 const BASE: Note[] = [
@@ -188,9 +188,9 @@ export default function Notifications({ onNavigate }: PageProps) {
     const bucket: Bucket = age < 86_400_000 ? 'Today' : age < 172_800_000 ? 'Yesterday' : 'Earlier'
     const category: Category = notification.type === 'payment' ? 'payments' : notification.type === 'review' ? 'social' : 'opportunities'
     const action: Note['action'] = notification.relatedJobId
-      ? { label: 'Open job', page: 'job-workspace' }
+      ? { label: 'Open job', page: 'job-workspace', data: { jobId: notification.relatedJobId } }
       : notification.relatedJobRequestId
-        ? { label: 'View opportunity', page: 'opportunity-detail' }
+        ? { label: 'View opportunity', page: 'opportunity-detail', data: { jobRequestId: notification.relatedJobRequestId } }
         : { label: 'View updates', page: 'dashboard' }
     return {
       id: notification._id,
@@ -227,7 +227,7 @@ export default function Notifications({ onNavigate }: PageProps) {
 
   const open = (n: Note) => {
     markRead(n.id)
-    onNavigate(n.action.page)
+    onNavigate(n.action.page, n.action.data)
   }
 
   return (

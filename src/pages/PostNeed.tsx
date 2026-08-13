@@ -52,11 +52,7 @@ const KEYWORD_MAP: { keys: string[]; skills: string[] }[] = [
 
 const STEPS = ['Understanding request', 'Finding skills', 'Checking availability', 'Ranking candidates']
 
-const TOP_MATCHES = [
-  { name: 'Kasun Perera', match: 96, meta: 'ICT · Peradeniya · 18 jobs' },
-  { name: 'Nimal Silva', match: 89, meta: 'Fine Arts · Kelaniya · 12 jobs' },
-  { name: 'Sahan Fernando', match: 84, meta: 'Media Studies · Colombo · 9 jobs' },
-]
+// Removed mock TOP_MATCHES
 
 const TIPS = [
   { icon: '🎯', title: 'Say what the outcome is', text: '"A poster for a 900-person exhibition" beats "some design work".' },
@@ -78,10 +74,12 @@ export default function PostNeed({ onNavigate }: PageProps) {
   const [custom, setCustom] = useState<string[]>([])
   const [customDraft, setCustomDraft] = useState('')
   const [step, setStep] = useState(0)
+  const [createdJobId, setCreatedJobId] = useState<any>(null)
   const taxonomy = useQuery(api.skills.list, {})
   const createRequest = useMutation(api.jobRequests.create)
   const saveAnalysis = useMutation(api.aiRequirements.setFromAnalysis)
   const generateMatches = useMutation(api.matches.generate)
+  const realMatches = useQuery(api.matches.listByJob, createdJobId ? { jobRequestId: createdJobId } : 'skip')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const timers = useRef<number[]>([])
@@ -129,6 +127,7 @@ export default function PostNeed({ onNavigate }: PageProps) {
     })
     await saveAnalysis({ jobRequestId, category, requiredSkills, aiConfidence: 0.75 })
     await generateMatches({ jobRequestId })
+    setCreatedJobId(jobRequestId)
   }
 
   const start = () => {
@@ -457,9 +456,9 @@ export default function PostNeed({ onNavigate }: PageProps) {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
-                  {TOP_MATCHES.map((m, i) => (
+                  {(realMatches ?? []).slice(0, 3).map((m: any, i: number) => (
                     <div
-                      key={m.name}
+                      key={m.studentId}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -472,19 +471,19 @@ export default function PostNeed({ onNavigate }: PageProps) {
                       }}
                     >
                       <span style={{ fontSize: 12, fontWeight: 800, color: C.faint }}>#{i + 1}</span>
-                      <Avatar name={m.name} size={40} />
+                      <Avatar name={m.student?.username ?? "Student"} size={40} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text }}>{m.name}</div>
-                        <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{m.meta}</div>
+                        <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text }}>{m.student?.username ?? "Student"}</div>
+                        <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{m.student?.bio ? (m.student.bio.slice(0, 40) + '...') : 'Verified Student'}</div>
                       </div>
-                      <MatchBadge pct={m.match} size="sm" />
+                      <MatchBadge pct={m.totalScore} size="sm" />
                     </div>
                   ))}
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <Btn size="lg" onClick={() => onNavigate('ai-match')}>
-                    View AI Matches
+                  <Btn size="lg" onClick={() => onNavigate('requester-dashboard')}>
+                    View in Dashboard
                   </Btn>
                   <Btn size="lg" variant="secondary" onClick={reset}>
                     Post another need
