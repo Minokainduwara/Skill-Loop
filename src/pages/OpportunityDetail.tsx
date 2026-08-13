@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import type { PageProps } from '../types'
 import {
   AICallout,
@@ -52,14 +53,12 @@ const SIMILAR = [
   { title: 'Product Photography — Handmade Batik', budget: 5200, match: 76, meta: '6.4 km · 13 days left' },
 ]
 
-export default function OpportunityDetail({ onNavigate }: PageProps) {
+export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const [saved, setSaved] = useState(false)
-  const openRequests = useQuery(api.jobRequests.listOpen, {})
+  const jobRequestId = data?.jobRequestId as Id<"jobRequests"> | undefined
+  const jobRequest = useQuery(api.jobRequests.get, jobRequestId ? { jobRequestId } : 'skip')
   const myApplications = useQuery(api.applications.listMine)
   const applyMutation = useMutation(api.applications.apply)
-
-  // Use the first open request for the demo
-  const jobRequest = openRequests?.[0]
   
   // Check if we have already applied
   const application = myApplications?.find(a => a.jobRequestId === jobRequest?._id)
