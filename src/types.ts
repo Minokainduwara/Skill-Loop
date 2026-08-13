@@ -28,6 +28,7 @@ export type Page =
   | 'admin-analytics'
   | 'requester-dashboard'
   | 'requester-applications'
+  | 'student-applications'
 
 export type Navigate = (page: Page, data?: any) => void
 

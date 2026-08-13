@@ -31,6 +31,7 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminJobs from './pages/admin/AdminJobs'
 import AdminPayments from './pages/admin/AdminPayments'
 import AdminAnalytics from './pages/admin/AdminAnalytics'
+import StudentApplications from './pages/StudentApplications'
 import RequesterDashboard from './pages/RequesterDashboard'
 import RequesterApplications from './pages/RequesterApplications'
 const FULLSCREEN: Page[] = ['login', 'signup', 'onboarding']
@@ -75,6 +76,7 @@ export default function App() {
       case 'admin-jobs':         return <AdminJobs onNavigate={navigate} />
       case 'admin-payments':     return <AdminPayments onNavigate={navigate} />
       case 'admin-analytics':    return <AdminAnalytics onNavigate={navigate} />
+      case 'student-applications': return <StudentApplications onNavigate={navigate} />
       case 'requester-dashboard':return <RequesterDashboard onNavigate={navigate} data={pageData} />
       case 'requester-applications': return <RequesterApplications onNavigate={navigate} data={pageData} />
     }

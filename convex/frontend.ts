@@ -36,6 +36,7 @@ export const opportunityFeed = query({
   args: {},
   handler: async (ctx) => {
     const requests = await ctx.db.query("jobRequests").withIndex("byStatus", (q) => q.eq("status", "open")).collect();
+    requests.sort((a, b) => b.createdAt - a.createdAt);
     return await Promise.all(requests.map(async (request) => {
       const [requester, requirements] = await Promise.all([
         ctx.db.get("users", request.requesterId),
