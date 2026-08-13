@@ -1,4 +1,5 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { useClerk, useUser } from '@clerk/clerk-react'
 import type { PageProps } from '../types'
 import {
   Avatar,
@@ -141,6 +142,8 @@ function Eyebrow({ children, light }: { children: string; light?: boolean }) {
 }
 
 export default function Landing({ onNavigate }: PageProps) {
+  const clerk = useClerk()
+  const { isSignedIn } = useUser()
   return (
     <div style={{ background: C.bg }}>
       {/* ------------------------------------------------------------ hero */}
@@ -206,7 +209,11 @@ export default function Landing({ onNavigate }: PageProps) {
               experience, and grow. No bidding wars. No waiting.
             </p>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 34 }}>
-              <Btn size="lg" onClick={() => onNavigate('login')} style={{ boxShadow: SHADOW.glow }}>
+              <Btn
+                size="lg"
+                onClick={() => (isSignedIn ? onNavigate('opportunities') : clerk.openSignIn())}
+                style={{ boxShadow: SHADOW.glow }}
+              >
                 Find Opportunities →
               </Btn>
               <Btn
