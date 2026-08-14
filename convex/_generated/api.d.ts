@@ -11,7 +11,7 @@
 import type * as admin from "../admin.js";
 import type * as aiRequirements from "../aiRequirements.js";
 import type * as applications from "../applications.js";
-import type * as dashboardMock from "../dashboardMock.js";
+import type * as dashboard from "../dashboard.js";
 import type * as demandSignals from "../demandSignals.js";
 import type * as earnings from "../earnings.js";
 import type * as frontend from "../frontend.js";
@@ -60,7 +60,7 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   aiRequirements: typeof aiRequirements;
   applications: typeof applications;
-  dashboardMock: typeof dashboardMock;
+  dashboard: typeof dashboard;
   demandSignals: typeof demandSignals;
   earnings: typeof earnings;
   frontend: typeof frontend;

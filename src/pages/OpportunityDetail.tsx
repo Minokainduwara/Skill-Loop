@@ -36,14 +36,9 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const myApplications = useQuery(api.applications.listMine)
   const applyMutation = useMutation(api.applications.apply)
   
-  const matchesForJob = useQuery(api.matches.listByJob, jobRequestId ? { jobRequestId } : 'skip')
-  const myMatches = useQuery(api.matches.listForStudent, {})
   const currentMatch = myMatches?.find((match) => match.jobRequestId === jobRequestId)
   const matchPct = Math.round((currentMatch?.totalScore ?? 0) * 100)
   const fitLabel = matchPct >= 90 ? 'Excellent fit' : matchPct >= 75 ? 'Strong fit' : 'Potential fit'
-
-  const rank = matchesForJob ? matchesForJob.findIndex(m => m.studentId === currentMatch?.studentId) + 1 : null
-  const totalMatches = matchesForJob?.length ?? 0
 
   const skillPct = Math.round((currentMatch?.skillScore ?? 0) * 100)
   const availabilityPct = Math.round((currentMatch?.availabilityScore ?? 0) * 100)
@@ -54,12 +49,6 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const application = myApplications?.find(a => a.jobRequestId === jobRequestId)
   const applied = !!application
   const accepted = application?.status === 'accepted'
-  const currentMatch = myMatches?.find((match) => match.jobRequestId === jobRequestId)
-  const matchPct = Math.round((currentMatch?.totalScore ?? 0) * 100)
-  const skillPct = Math.round((currentMatch?.skillScore ?? 0) * 100)
-  const availabilityPct = Math.round((currentMatch?.availabilityScore ?? 0) * 100)
-  const experiencePct = Math.round((currentMatch?.experienceScore ?? 0) * 100)
-  const ratingPct = Math.round((currentMatch?.ratingScore ?? 0) * 100)
   const rank = useMemo(() => {
     if (!matchesForJob || !currentMatch) return null
     const index = matchesForJob.findIndex((match) => match._id === currentMatch._id)
@@ -67,7 +56,6 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   }, [currentMatch, matchesForJob])
   const totalMatches = matchesForJob?.length ?? 0
   const statusLabel = detail?.status ? detail.status.charAt(0).toUpperCase() + detail.status.slice(1) : 'Open'
-  const fitLabel = matchPct >= 90 ? 'Excellent fit' : matchPct >= 75 ? 'Strong fit' : 'Potential fit'
   const escrowAmount = detail?.budgetMax ?? detail?.budgetMin
 
   const handleApply = async () => {

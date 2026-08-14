@@ -55,7 +55,7 @@ const LEVEL_TONES: Record<Level, { color: string; bg: string; icon: string }> = 
 const PERIODS = ['7 days', '30 days', '90 days']
 
 export default function SkillDemand({ onNavigate }: PageProps) {
-  const data = useQuery(api.dashboardMock.getSkillDemand)
+  const data = useQuery(api.dashboard.getSkillDemand)
   
   const ROWS = data?.rows || []
   const GAP = data?.gap?.map((g: any) => ({ name: g.skill, have: g.you })) || []
@@ -75,6 +75,11 @@ export default function SkillDemand({ onNavigate }: PageProps) {
     requests: r.requests,
     students: r.students,
   }))
+  const topSkill = ROWS[0]
+  const gapTotal = GAP.length
+  const gapHave = GAP.filter((g: any) => g.have).length
+  const readyPct = gapTotal > 0 ? Math.round((gapHave / gapTotal) * 100) : 0
+  const gapMissing = gapTotal - gapHave
 
   if (!data) return null;
 
@@ -316,11 +321,11 @@ export default function SkillDemand({ onNavigate }: PageProps) {
         </Card>
 
         {/* ------------------------------------------------------ skill gap */}
-        <SectionTitle title="Grow Your Skills" subtitle="AI skill-gap analysis for Kasun Perera" />
+        <SectionTitle title="Grow Your Skills" subtitle="AI skill-gap analysis for your profile" />
         <Grid min={340} gap={18} style={{ marginBottom: 26 }}>
           <Card>
             <div style={{ fontSize: 13.5, fontWeight: 800, color: C.text, marginBottom: 14 }}>
-              Your Web Development stack
+              Your {topSkill?.category || 'top'} stack
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               {GAP.map((g: any) => (
@@ -345,13 +350,13 @@ export default function SkillDemand({ onNavigate }: PageProps) {
             </div>
             <Divider />
             <div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
-              <CircleProgress value={72} size={96} label="ready" />
+              <CircleProgress value={readyPct} size={96} label="ready" />
               <div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: C.text, lineHeight: 1.45 }}>
-                  You&apos;re 72% ready for current Web Development opportunities.
+                  You&apos;re {readyPct}% ready for current {topSkill?.category || 'in-demand'} opportunities.
                 </div>
                 <div style={{ fontSize: 12.5, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
-                  Three of six in-demand skills are still missing from your profile.
+                  {gapMissing} of {gapTotal} in-demand skills are still missing from your profile.
                 </div>
               </div>
             </div>
@@ -362,22 +367,23 @@ export default function SkillDemand({ onNavigate }: PageProps) {
               Recommended next step
             </Badge>
             <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: -0.8, color: C.text, marginTop: 12 }}>
-              Learn React
+              {topSkill ? `Learn ${topSkill.skill}` : 'Build your profile'}
             </div>
             <div style={{ fontSize: 13.5, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
-              React appears in most Web Development requests posted near Peradeniya this month. Adding it unlocks
-              the highest-value briefs on the board.
+              {topSkill
+                ? `${topSkill.skill} leads the demand signals near Peradeniya this month. Adding it unlocks the highest-value briefs on the board.`
+                : 'Complete your profile and skills to see personalised recommendations.'}
             </div>
             <Grid min={140} gap={12} style={{ marginTop: 18 }}>
               <div style={{ padding: 14, borderRadius: 14, background: C.primary + '0D', border: `1px solid ${C.primary}22` }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: -0.6 }}>17</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: -0.6 }}>{topSkill?.requests ?? 0}</div>
                 <div style={{ fontSize: 11.5, color: C.muted, fontWeight: 700, marginTop: 2 }}>
                   Matching opportunities
                 </div>
               </div>
               <div style={{ padding: 14, borderRadius: 14, background: C.accent + '0D', border: `1px solid ${C.accent}22` }}>
                 <div style={{ fontSize: 17, fontWeight: 800, color: C.text, letterSpacing: -0.4 }}>
-                  Rs. 8,000–15,000
+                  {rupees(topSkill?.budget ?? 0)}
                 </div>
                 <div style={{ fontSize: 11.5, color: C.muted, fontWeight: 700, marginTop: 2 }}>
                   Potential extra / month
@@ -395,7 +401,7 @@ export default function SkillDemand({ onNavigate }: PageProps) {
         <Card style={{ marginBottom: 26 }} pad={20}>
           <div style={{ fontSize: 13.5, fontWeight: 800, color: C.text }}>Demand trend for your top skill</div>
           <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 12 }}>
-            Graphic Design requests near Peradeniya, weekly
+            {topSkill?.skill || 'Top skill'} requests near Peradeniya, weekly
           </div>
           <div style={{ height: 180, minWidth: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -420,11 +426,12 @@ export default function SkillDemand({ onNavigate }: PageProps) {
         </Card>
 
         <AICallout
-          title="Graphic Design demand is outpacing supply by 3.5×"
+          title={topSkill ? `${topSkill.skill} demand is outpacing supply` : 'Demand data coming soon'}
           action={<Btn onClick={() => onNavigate('demand-cluster')}>See cluster</Btn>}
         >
-          42 requests are competing for only 12 available designers near Peradeniya. Requesters are paying an average
-          of {rupees(2400)} per brief — a strong moment to raise your rates.
+          {topSkill
+            ? `${topSkill.requests} requests are competing for only ${topSkill.students || 'a handful of'} available ${topSkill.skill.toLowerCase()} providers near Peradeniya. Requesters are paying an average of ${rupees(topSkill.budget)} per brief — a strong moment to raise your rates.`
+            : 'No demand signals have been recorded yet. Check back once requests are posted near you.'}
         </AICallout>
       </Shell>
     </div>
