@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
@@ -30,6 +30,8 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const [saved, setSaved] = useState(false)
   const jobRequestId = data?.jobRequestId as Id<"jobRequests"> | undefined
   const detail = useQuery(api.frontend.opportunityDetail, jobRequestId ? { jobRequestId } : 'skip')
+  const matchesForJob = useQuery(api.matches.listByJob, jobRequestId ? { jobRequestId } : 'skip')
+  const myMatches = useQuery(api.matches.listForStudent, {})
   const jobRequest = detail ? { _id: detail._id, title: detail.title, budgetMax: detail.budgetMax } : null
   const myApplications = useQuery(api.applications.listMine)
   const applyMutation = useMutation(api.applications.apply)
@@ -52,6 +54,21 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const application = myApplications?.find(a => a.jobRequestId === jobRequestId)
   const applied = !!application
   const accepted = application?.status === 'accepted'
+  const currentMatch = myMatches?.find((match) => match.jobRequestId === jobRequestId)
+  const matchPct = Math.round((currentMatch?.totalScore ?? 0) * 100)
+  const skillPct = Math.round((currentMatch?.skillScore ?? 0) * 100)
+  const availabilityPct = Math.round((currentMatch?.availabilityScore ?? 0) * 100)
+  const experiencePct = Math.round((currentMatch?.experienceScore ?? 0) * 100)
+  const ratingPct = Math.round((currentMatch?.ratingScore ?? 0) * 100)
+  const rank = useMemo(() => {
+    if (!matchesForJob || !currentMatch) return null
+    const index = matchesForJob.findIndex((match) => match._id === currentMatch._id)
+    return index >= 0 ? index + 1 : null
+  }, [currentMatch, matchesForJob])
+  const totalMatches = matchesForJob?.length ?? 0
+  const statusLabel = detail?.status ? detail.status.charAt(0).toUpperCase() + detail.status.slice(1) : 'Open'
+  const fitLabel = matchPct >= 90 ? 'Excellent fit' : matchPct >= 75 ? 'Strong fit' : 'Potential fit'
+  const escrowAmount = detail?.budgetMax ?? detail?.budgetMin
 
   const handleApply = async () => {
     if (!jobRequest) return
@@ -87,8 +104,8 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
             <Card style={{ animation: 'sl-rise .5s both' }}>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
-                <MatchBadge pct={96} />
-                <StatusBadge status="Open" />
+                <MatchBadge pct={matchPct} />
+                <StatusBadge status={statusLabel} />
                 <Badge color={C.muted} bg={C.subtle}>
                   Quick Task
                 </Badge>
@@ -210,7 +227,7 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>Opportunity accepted</div>
                   <p style={{ margin: '6px 0 16px', fontSize: 13, color: C.muted, lineHeight: 1.65 }}>
-                    Rs. 2,000 is now held in escrow. The requester has been notified and your workspace is ready.
+                    {escrowAmount !== undefined ? `${rupees(escrowAmount)} is now held in escrow.` : 'The agreed amount is now held in escrow.'} The requester has been notified and your workspace is ready.
                   </p>
                   <Btn full onClick={() => onNavigate('job-workspace')}>
                     Open Job Workspace
@@ -254,7 +271,7 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 800, color: '#0F766E' }}>Protected by SkillLoop escrow</div>
                   <p style={{ margin: '5px 0 0', fontSize: 12.5, color: '#0F766E', lineHeight: 1.6, opacity: 0.9 }}>
-                    The full Rs. 2,000 is locked before you start and released within 24 hours of approval. Keep all
+                    {escrowAmount !== undefined ? `The full ${rupees(escrowAmount)} is locked before you start and released within 24 hours of approval.` : 'The full agreed amount is locked before you start and released within 24 hours of approval.'} Keep all
                     files and chat inside SkillLoop so support can help if anything goes wrong.
                   </p>
                 </div>
