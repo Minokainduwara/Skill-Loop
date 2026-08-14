@@ -35,6 +35,8 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const jobRequest = detail ? { _id: detail._id, title: detail.title, budgetMax: detail.budgetMax } : null
   const myApplications = useQuery(api.applications.listMine)
   const applyMutation = useMutation(api.applications.apply)
+  const getOrCreateChannel = useMutation(api.messages.getOrCreateChannel)
+  const user = useQuery(api.users.current)
   
   const currentMatch = myMatches?.find((match) => match.jobRequestId === jobRequestId)
   const matchPct = Math.round((currentMatch?.totalScore ?? 0) * 100)
@@ -65,6 +67,23 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
       proposal: "I would love to work on this project! I have the required skills.",
       proposedPrice: jobRequest.budgetMax ?? 2000,
     })
+    
+    if (user) {
+      const channelId = await getOrCreateChannel({
+        jobRequestId: jobRequest._id,
+        studentId: user._id,
+      })
+      onNavigate('messages', { channelId })
+    }
+  }
+
+  const handleMessageRequester = async () => {
+    if (!jobRequest || !user) return
+    const channelId = await getOrCreateChannel({
+      jobRequestId: jobRequest._id,
+      studentId: user._id,
+    })
+    onNavigate('messages', { channelId })
   }
 
   return (
@@ -242,7 +261,7 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
                     Apply for Opportunity
                   </Btn>
                   <div style={{ height: 10 }} />
-                  <Btn full variant="secondary" onClick={() => onNavigate('messages')}>
+                  <Btn full variant="secondary" onClick={handleMessageRequester} disabled={!detail || !user}>
                     Message Requester
                   </Btn>
                   <div style={{ height: 10 }} />

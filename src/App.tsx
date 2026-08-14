@@ -66,7 +66,7 @@ export default function App() {
       case 'completion':         return <Completion onNavigate={navigate} />
       case 'earnings':           return <Earnings onNavigate={navigate} />
       case 'economic-impact':    return <EconomicImpact onNavigate={navigate} />
-      case 'messages':           return <Messages onNavigate={navigate} />
+      case 'messages':           return <Messages onNavigate={navigate} data={pageData} />
       case 'profile':            return <Profile onNavigate={navigate} />
       case 'portfolio':          return <Portfolio onNavigate={navigate} />
       case 'skill-demand':       return <SkillDemand onNavigate={navigate} />

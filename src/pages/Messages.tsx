@@ -1,154 +1,37 @@
-import { useMemo, useState } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { useQuery, useMutation } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import type { PageProps } from '../types'
-import {
-  Avatar,
-  Badge,
-  Btn,
-  C,
-  Card,
-  EmptyState,
-  Input,
-  PageHead,
-  SearchInput,
-  Shell,
-  rupees,
-} from '../components/ui'
+import { Avatar, Badge, Btn, C, Card, EmptyState, Input, PageHead, SearchInput, Shell } from '../components/ui'
+import type { Id } from '../../convex/_generated/dataModel'
 
-interface Bubble {
-  id: number
-  from: 'me' | 'them'
-  text?: string
-  attachment?: { icon: string; name: string; meta: string }
-  time: string
-  dateSep?: string
-}
-
-interface Conversation {
-  id: string
-  name: string
-  job: string
-  online: boolean
-  preview: string
-  time: string
-  unread: number
-  emoji?: string
-  messages: Bubble[]
-}
-
-const CONVERSATIONS: Conversation[] = [
-  {
-    id: 'c1',
-    name: 'University Robotics Society',
-    job: 'Robotics Exhibition Poster · ' + rupees(2000),
-    online: true,
-    preview: 'Perfect, the v2 poster looks great. Sending approval now.',
-    time: '4:02 PM',
-    unread: 2,
-    emoji: '🤖',
-    messages: [
-      { id: 1, from: 'them', text: 'Hi Kasun! Thanks for accepting the poster job. Deadline is the 14th.', time: '9:12 AM', dateSep: 'Monday, 10 August' },
-      { id: 2, from: 'me', text: 'Noted. I will share a first direction on Wednesday.', time: '9:31 AM' },
-      { id: 3, from: 'them', attachment: { icon: '🗜️', name: 'society-logo-pack.zip', meta: 'ZIP · 2.4 MB' }, time: '10:04 AM' },
-      { id: 4, from: 'me', text: 'Got it. I will keep the indigo and teal society palette.', time: '10:20 AM' },
-      { id: 5, from: 'them', text: 'Could you make the venue line larger and add the QR code bottom right?', time: '8:20 AM', dateSep: 'Today' },
-      { id: 6, from: 'me', attachment: { icon: '🖼️', name: 'poster-draft-v2.png', meta: 'PNG · 3.4 MB · A3 preview' }, time: '3:48 PM' },
-      { id: 7, from: 'them', text: 'Perfect, the v2 poster looks great. Sending approval now.', time: '4:02 PM' },
-    ],
-  },
-  {
-    id: 'c2',
-    name: 'Nimali Jayasuriya',
-    job: 'Instagram Reel Edit · ' + rupees(2500),
-    online: true,
-    preview: 'Can you make the intro a bit more minimal?',
-    time: '1:15 PM',
-    unread: 1,
-    messages: [
-      { id: 1, from: 'them', text: 'Hi! I saw your portfolio — the Kandy heritage map is beautiful.', time: '11:02 AM', dateSep: 'Today' },
-      { id: 2, from: 'me', text: 'Thank you Nimali! Happy to take on the reel edit for the food tour.', time: '11:40 AM' },
-      { id: 3, from: 'them', text: 'Can you make the intro a bit more minimal?', time: '1:15 PM' },
-    ],
-  },
-  {
-    id: 'c3',
-    name: 'Kandy Spice Kitchen',
-    job: 'Spice Menu Redesign · ' + rupees(3500),
-    online: false,
-    preview: 'The colour palette is approved. Go ahead with print layout.',
-    time: 'Yesterday',
-    unread: 0,
-    emoji: '🍛',
-    messages: [
-      { id: 1, from: 'them', text: 'We need the A4 menu plus a digital version for the QR code stands.', time: '2:10 PM', dateSep: 'Yesterday' },
-      { id: 2, from: 'me', text: 'Understood. I will send two palette options tonight.', time: '2:44 PM' },
-      { id: 3, from: 'them', text: 'The colour palette is approved. Go ahead with print layout.', time: '6:05 PM' },
-    ],
-  },
-  {
-    id: 'c4',
-    name: 'Dr. Anura Rajapaksa',
-    job: 'Chemistry Slide Deck · Completed',
-    online: false,
-    preview: 'Thanks again — the students found the slides very clear.',
-    time: 'Mon',
-    unread: 0,
-    messages: [
-      { id: 1, from: 'them', text: 'Thanks again — the students found the slides very clear.', time: '9:30 AM', dateSep: 'Monday, 10 August' },
-      { id: 2, from: 'me', text: 'Glad to hear it, Sir. Happy to help with the next tutorial set too.', time: '10:12 AM' },
-    ],
-  },
-  {
-    id: 'c5',
-    name: 'Tharindu Weerasinghe',
-    job: 'Heritage Walk Map · Completed',
-    online: false,
-    preview: 'Let me know when you are free for the second map.',
-    time: 'Sat',
-    unread: 0,
-    messages: [],
-  },
-]
-
-export default function Messages({ onNavigate }: PageProps) {
-  const [activeId, setActiveId] = useState(CONVERSATIONS[0].id)
+export default function Messages({ onNavigate, data }: PageProps) {
+  const channels = useQuery(api.messages.listChannels, {})
+  const user = useQuery(api.users.current)
+  
+  const [activeChannelId, setActiveChannelId] = useState<Id<"channels"> | null>(
+    data?.channelId as Id<"channels"> || null
+  )
   const [query, setQuery] = useState('')
-  const [draft, setDraft] = useState('')
-  const [extra, setExtra] = useState<Record<string, Bubble[]>>({})
+  
+  useEffect(() => {
+    if (!activeChannelId && channels && channels.length > 0) {
+      setActiveChannelId(channels[0]._id)
+    }
+  }, [channels, activeChannelId])
 
-  const filtered = useMemo(() => {
+  const filteredChannels = useMemo(() => {
+    if (!channels) return []
     const q = query.trim().toLowerCase()
-    if (!q) return CONVERSATIONS
-    return CONVERSATIONS.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.preview.toLowerCase().includes(q),
+    if (!q) return channels
+    return channels.filter(
+      (c) => 
+        (c.otherUser?.username || "").toLowerCase().includes(q) || 
+        (c.jobRequest?.title || "").toLowerCase().includes(q)
     )
-  }, [query])
+  }, [channels, query])
 
-  const active = useMemo(
-    () => CONVERSATIONS.find((c) => c.id === activeId) ?? CONVERSATIONS[0],
-    [activeId],
-  )
-
-  const thread = useMemo(
-    () => [...active.messages, ...(extra[active.id] ?? [])],
-    [active, extra],
-  )
-
-  const send = () => {
-    const text = draft.trim()
-    if (!text) return
-    const now = new Date().toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-    })
-    setExtra((prev) => ({
-      ...prev,
-      [active.id]: [
-        ...(prev[active.id] ?? []),
-        { id: Date.now(), from: 'me', text, time: now },
-      ],
-    }))
-    setDraft('')
-  }
+  const activeChannel = channels?.find((c) => c._id === activeChannelId)
 
   return (
     <Shell width={1240}>
@@ -171,316 +54,264 @@ export default function Messages({ onNavigate }: PageProps) {
         }
       />
 
-      <div className="sl-msg-grid">
-        <Card pad={0} style={{ overflow: 'hidden' }}>
-          <div style={{ padding: 14, borderBottom: `1px solid ${C.border}`, display: 'flex' }}>
-            <SearchInput value={query} onChange={setQuery} placeholder="Search conversations" />
-          </div>
-          <div className="sl-msg-list scrollbar-hide" style={{ maxHeight: 560, overflowY: 'auto' }}>
-            {filtered.length === 0 && (
-              <p style={{ padding: 24, margin: 0, fontSize: 13, color: C.faint, textAlign: 'center' }}>
-                No conversations match "{query}".
-              </p>
-            )}
-            {filtered.map((c) => {
-              const on = c.id === activeId
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setActiveId(c.id)}
-                  className="sl-press"
-                  style={{
-                    display: 'flex',
-                    gap: 12,
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '14px 16px',
-                    border: 'none',
-                    borderLeft: `3px solid ${on ? C.primary : 'transparent'}`,
-                    borderBottom: `1px solid ${C.subtle}`,
-                    background: on ? '#EEF2FF' : C.surface,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <Avatar name={c.name} size={42} emoji={c.emoji} />
-                    {c.online && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          right: -1,
-                          bottom: -1,
-                          width: 12,
-                          height: 12,
-                          borderRadius: '50%',
-                          background: C.success,
-                          border: '2px solid #fff',
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                      <span
-                        style={{
-                          fontSize: 13.5,
-                          fontWeight: 800,
-                          color: C.text,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {c.name}
-                      </span>
-                      <span style={{ fontSize: 11, color: C.faint, flexShrink: 0 }}>{c.time}</span>
+      {channels === undefined ? (
+        <Card>Loading messages...</Card>
+      ) : channels.length === 0 ? (
+        <EmptyState 
+          emoji="💬" 
+          title="No active conversations" 
+          text="When you apply to an opportunity, your chat with the requester will appear here." 
+        />
+      ) : (
+        <div className="sl-msg-grid">
+          {/* Sidebar */}
+          <Card pad={0} style={{ overflow: 'hidden' }}>
+            <div style={{ padding: 14, borderBottom: `1px solid ${C.border}`, display: 'flex' }}>
+              <SearchInput value={query} onChange={setQuery} placeholder="Search conversations" />
+            </div>
+            <div className="sl-msg-list scrollbar-hide" style={{ maxHeight: 560, overflowY: 'auto' }}>
+              {filteredChannels.length === 0 && (
+                <p style={{ padding: 24, margin: 0, fontSize: 13, color: C.faint, textAlign: 'center' }}>
+                  No conversations match "{query}".
+                </p>
+              )}
+              {filteredChannels.map((c) => {
+                const on = c._id === activeChannelId
+                return (
+                  <button
+                    key={c._id}
+                    onClick={() => setActiveChannelId(c._id)}
+                    className="sl-press"
+                    style={{
+                      display: 'flex',
+                      gap: 12,
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '14px 16px',
+                      border: 'none',
+                      borderLeft: `3px solid ${on ? C.primary : 'transparent'}`,
+                      borderBottom: `1px solid ${C.subtle}`,
+                      background: on ? '#EEF2FF' : C.surface,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <Avatar name={c.otherUser?.username || "User"} size={42} />
                     </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        marginTop: 5,
-                      }}
-                    >
-                      <span
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          fontSize: 12.5,
-                          color: c.unread ? C.text : C.muted,
-                          fontWeight: c.unread ? 700 : 500,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {c.preview}
-                      </span>
-                      {c.unread > 0 && (
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                         <span
                           style={{
-                            flexShrink: 0,
-                            minWidth: 20,
-                            height: 20,
-                            padding: '0 6px',
-                            borderRadius: 999,
-                            background: C.primary,
-                            color: '#fff',
-                            fontSize: 11,
+                            fontSize: 13.5,
                             fontWeight: 800,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            color: C.text,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
                           }}
                         >
-                          {c.unread}
+                          {c.otherUser?.username || "User"}
                         </span>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </Card>
-
-        <Card pad={0} style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div
-            style={{
-              padding: '15px 20px',
-              borderBottom: `1px solid ${C.border}`,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <Avatar name={active.name} size={40} emoji={active.emoji} />
-            <div style={{ flex: 1, minWidth: 140 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text }}>{active.name}</div>
-              <div
-                style={{
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  color: active.online ? C.success : C.faint,
-                  marginTop: 2,
-                }}
-              >
-                {active.online ? '● Online now' : '○ Last seen recently'}
-              </div>
-            </div>
-            <Badge color={C.accent}>{active.job}</Badge>
-            <Btn size="sm" variant="secondary" onClick={() => onNavigate('job-workspace')}>
-              View job
-            </Btn>
-          </div>
-
-          <div
-            className="scrollbar-hide"
-            style={{
-              padding: 20,
-              minHeight: 360,
-              maxHeight: 480,
-              overflowY: 'auto',
-              display: 'grid',
-              gap: 12,
-              alignContent: thread.length ? 'start' : 'center',
-              background: C.bg,
-            }}
-          >
-            {thread.length === 0 ? (
-              <EmptyState
-                emoji="💬"
-                title="No messages yet"
-                text={`Start the conversation with ${active.name} — a short intro doubles your reply rate.`}
-                action={<Btn size="sm" onClick={() => setDraft('Hi! Are you free to discuss the next map?')}>Draft a hello</Btn>}
-              />
-            ) : (
-              thread.map((m) => {
-                const mine = m.from === 'me'
-                return (
-                  <div key={m.id} style={{ display: 'grid', gap: 12 }}>
-                    {m.dateSep && (
+                      </div>
                       <div
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 12,
-                          margin: '4px 0',
+                          gap: 8,
+                          marginTop: 5,
                         }}
                       >
-                        <div style={{ flex: 1, height: 1, background: C.border }} />
                         <span
                           style={{
-                            fontSize: 11,
-                            fontWeight: 800,
-                            color: C.faint,
-                            letterSpacing: 0.6,
-                            textTransform: 'uppercase',
+                            flex: 1,
+                            minWidth: 0,
+                            fontSize: 12.5,
+                            color: C.muted,
+                            fontWeight: 500,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
                           }}
                         >
-                          {m.dateSep}
+                          {c.jobRequest?.title || "Unknown Job"}
                         </span>
-                        <div style={{ flex: 1, height: 1, background: C.border }} />
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
-                      <div style={{ maxWidth: '72%' }}>
-                        {m.attachment ? (
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 12,
-                              padding: 12,
-                              borderRadius: 16,
-                              borderBottomRightRadius: mine ? 5 : 16,
-                              borderBottomLeftRadius: mine ? 16 : 5,
-                              background: mine ? 'rgba(79,70,229,0.08)' : C.surface,
-                              border: `1px solid ${mine ? '#C7D2FE' : C.border}`,
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: 46,
-                                height: 46,
-                                borderRadius: 12,
-                                background: 'linear-gradient(135deg, #EEF2FF, #F0FDFA)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: 21,
-                                flexShrink: 0,
-                              }}
-                            >
-                              {m.attachment.icon}
-                            </div>
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>
-                                {m.attachment.name}
-                              </div>
-                              <div style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>
-                                {m.attachment.meta}
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div
-                            style={{
-                              padding: '11px 15px',
-                              borderRadius: 16,
-                              borderBottomRightRadius: mine ? 5 : 16,
-                              borderBottomLeftRadius: mine ? 16 : 5,
-                              fontSize: 13.5,
-                              lineHeight: 1.6,
-                              background: mine
-                                ? 'linear-gradient(135deg, #4F46E5, #6D5AE6)'
-                                : C.surface,
-                              color: mine ? '#fff' : C.text,
-                              border: mine ? 'none' : `1px solid ${C.border}`,
-                            }}
-                          >
-                            {m.text}
-                          </div>
-                        )}
-                        <div
-                          style={{
-                            fontSize: 11,
-                            color: C.faint,
-                            marginTop: 5,
-                            textAlign: mine ? 'right' : 'left',
-                          }}
-                        >
-                          {m.time}
-                        </div>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 )
-              })
-            )}
-          </div>
+              })}
+            </div>
+          </Card>
 
+          {/* Main Chat Area */}
+          <Card pad={0} style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {activeChannel ? (
+              <ChatWindow channelId={activeChannel._id} otherUser={activeChannel.otherUser} jobRequest={activeChannel.jobRequest} currentUser={user} onNavigate={onNavigate} />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 360, color: C.muted }}>
+                Select a conversation to start messaging
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+    </Shell>
+  )
+}
+
+function ChatWindow({ channelId, otherUser, jobRequest, currentUser, onNavigate }: any) {
+  const messages = useQuery(api.messages.listMessages, { channelId })
+  const sendMessage = useMutation(api.messages.sendMessage)
+  const [draft, setDraft] = useState('')
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const send = async () => {
+    const text = draft.trim()
+    if (!text) return
+    await sendMessage({ channelId, text })
+    setDraft('')
+  }
+
+  return (
+    <>
+      <div
+        style={{
+          padding: '15px 20px',
+          borderBottom: `1px solid ${C.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <Avatar name={otherUser?.username || "User"} size={40} />
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text }}>{otherUser?.username || "User"}</div>
           <div
             style={{
-              display: 'flex',
-              gap: 10,
-              padding: 14,
-              borderTop: `1px solid ${C.border}`,
-              alignItems: 'center',
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: C.success,
+              marginTop: 2,
             }}
           >
-            <button
-              className="sl-press"
-              aria-label="Attach a file"
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 12,
-                border: `1px solid ${C.border}`,
-                background: C.surface,
-                cursor: 'pointer',
-                fontSize: 17,
-                flexShrink: 0,
-                fontFamily: 'inherit',
-              }}
-            >
-              📎
-            </button>
-            <Input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') send()
-              }}
-              placeholder={`Message ${active.name.split(' ')[0]}…`}
-            />
-            <Btn onClick={send}>Send</Btn>
+            ● Online now
           </div>
-        </Card>
+        </div>
+        <Badge color={C.accent}>{jobRequest?.title || "Unknown Job"}</Badge>
+        <Btn size="sm" variant="secondary" onClick={() => onNavigate('opportunity-detail', { jobRequestId: jobRequest?._id })}>
+          View job
+        </Btn>
       </div>
-    </Shell>
+
+      <div
+        className="scrollbar-hide"
+        style={{
+          padding: 20,
+          minHeight: 360,
+          maxHeight: 480,
+          overflowY: 'auto',
+          display: 'grid',
+          gap: 12,
+          alignContent: (messages && messages.length) ? 'start' : 'center',
+          background: C.bg,
+        }}
+      >
+        {messages === undefined ? (
+          <div style={{ textAlign: 'center', color: C.muted, marginTop: 20 }}>Loading messages...</div>
+        ) : messages.length === 0 ? (
+          <EmptyState
+            emoji="💬"
+            title="No messages yet"
+            text={`Start the conversation with ${otherUser?.username || "them"} — a short intro doubles your reply rate.`}
+            action={<Btn size="sm" onClick={() => setDraft('Hi! I am interested in this opportunity.')}>Draft a hello</Btn>}
+          />
+        ) : (
+          messages.map((m) => {
+            const mine = m.senderId === currentUser?._id
+            return (
+              <div key={m._id} style={{ display: 'grid', gap: 12 }}>
+                <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
+                  <div style={{ maxWidth: '72%' }}>
+                    <div
+                      style={{
+                        padding: '11px 15px',
+                        borderRadius: 16,
+                        borderBottomRightRadius: mine ? 5 : 16,
+                        borderBottomLeftRadius: mine ? 16 : 5,
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        background: mine
+                          ? 'linear-gradient(135deg, #4F46E5, #6D5AE6)'
+                          : C.surface,
+                        color: mine ? '#fff' : C.text,
+                        border: mine ? 'none' : `1px solid ${C.border}`,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {m.text}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: C.faint,
+                        marginTop: 5,
+                        textAlign: mine ? 'right' : 'left',
+                      }}
+                    >
+                      {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          gap: 10,
+          padding: 14,
+          borderTop: `1px solid ${C.border}`,
+          alignItems: 'center',
+        }}
+      >
+        <button
+          className="sl-press"
+          aria-label="Attach a file"
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 12,
+            border: `1px solid ${C.border}`,
+            background: C.surface,
+            cursor: 'pointer',
+            fontSize: 17,
+            flexShrink: 0,
+            fontFamily: 'inherit',
+          }}
+        >
+          📎
+        </button>
+        <Input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') send()
+          }}
+          placeholder={`Message ${otherUser?.username?.split(' ')[0] || "them"}…`}
+        />
+        <Btn onClick={send} disabled={!draft.trim()}>Send</Btn>
+      </div>
+    </>
   )
 }

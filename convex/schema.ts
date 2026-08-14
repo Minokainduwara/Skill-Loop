@@ -16,6 +16,8 @@ import { demandSignals } from "./schemas/demandSignals";
 import { opportunities } from "./schemas/opportunities";
 import { notifications } from "./schemas/notifications";
 import { impactMetrics } from "./schemas/impactMetrics";
+import { channels } from "./schemas/channels";
+import { messages } from "./schemas/messages";
 
 export default defineSchema({
   users,
@@ -35,4 +37,6 @@ export default defineSchema({
   opportunities,
   notifications,
   impactMetrics,
+  channels,
+  messages,
 });
