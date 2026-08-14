@@ -36,6 +36,20 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const myApplications = useQuery(api.applications.listMine)
   const applyMutation = useMutation(api.applications.apply)
   
+  const matchesForJob = useQuery(api.matches.listByJob, jobRequestId ? { jobRequestId } : 'skip')
+  const myMatches = useQuery(api.matches.listForStudent, {})
+  const currentMatch = myMatches?.find((match) => match.jobRequestId === jobRequestId)
+  const matchPct = Math.round((currentMatch?.totalScore ?? 0) * 100)
+  const fitLabel = matchPct >= 90 ? 'Excellent fit' : matchPct >= 75 ? 'Strong fit' : 'Potential fit'
+
+  const rank = matchesForJob ? matchesForJob.findIndex(m => m.studentId === currentMatch?.studentId) + 1 : null
+  const totalMatches = matchesForJob?.length ?? 0
+
+  const skillPct = Math.round((currentMatch?.skillScore ?? 0) * 100)
+  const availabilityPct = Math.round((currentMatch?.availabilityScore ?? 0) * 100)
+  const experiencePct = Math.round((currentMatch?.experienceScore ?? 0) * 100)
+  const ratingPct = Math.round((currentMatch?.ratingScore ?? 0) * 100)
+
   // Check if we have already applied
   const application = myApplications?.find(a => a.jobRequestId === jobRequestId)
   const applied = !!application

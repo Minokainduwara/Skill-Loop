@@ -34,7 +34,7 @@ import AdminAnalytics from './pages/admin/AdminAnalytics'
 import StudentApplications from './pages/StudentApplications'
 import RequesterDashboard from './pages/RequesterDashboard'
 import RequesterApplications from './pages/RequesterApplications'
-const FULLSCREEN: Page[] = ['login', 'signup', 'onboarding']
+const FULLSCREEN: Page[] = ['login', 'signup']
 const ADMIN_PAGES: Page[] = ['admin-dashboard', 'admin-users', 'admin-jobs', 'admin-payments', 'admin-analytics']
 
 export default function App() {
