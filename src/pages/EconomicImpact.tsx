@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import {
   Area,
   AreaChart,
@@ -55,68 +57,14 @@ interface TrendPoint {
   students: number
 }
 
-const TREND: Record<Scope, TrendPoint[]> = {
-  mine: [
-    { month: 'Feb', income: 1800, students: 1 },
-    { month: 'Mar', income: 2600, students: 1 },
-    { month: 'Apr', income: 3400, students: 1 },
-    { month: 'May', income: 4100, students: 1 },
-    { month: 'Jun', income: 5200, students: 1 },
-    { month: 'Jul', income: 6600, students: 1 },
-    { month: 'Aug', income: 7800, students: 1 },
-  ],
-  community: [
-    { month: 'Feb', income: 8200, students: 9 },
-    { month: 'Mar', income: 13400, students: 14 },
-    { month: 'Apr', income: 18900, students: 21 },
-    { month: 'May', income: 24600, students: 28 },
-    { month: 'Jun', income: 31200, students: 35 },
-    { month: 'Jul', income: 27800, students: 41 },
-    { month: 'Aug', income: 32400, students: 47 },
-  ],
-}
-
 interface SkillRow {
   skill: string
   requests: number
 }
 
-const SKILLS: Record<Scope, SkillRow[]> = {
-  mine: [
-    { skill: 'Graphic Design', requests: 8 },
-    { skill: 'Tutoring', requests: 4 },
-    { skill: 'Web Development', requests: 3 },
-    { skill: 'Video Editing', requests: 3 },
-    { skill: 'Photography', requests: 2 },
-  ],
-  community: [
-    { skill: 'Graphic Design', requests: 42 },
-    { skill: 'Video Editing', requests: 31 },
-    { skill: 'Web Development', requests: 27 },
-    { skill: 'Tutoring', requests: 21 },
-    { skill: 'Photography', requests: 18 },
-  ],
-}
-
 interface CatRow {
   name: string
   value: number
-}
-
-const CATS: Record<Scope, CatRow[]> = {
-  mine: [
-    { name: 'Design', value: 8 },
-    { name: 'Education', value: 4 },
-    { name: 'Development', value: 3 },
-    { name: 'Media', value: 3 },
-  ],
-  community: [
-    { name: 'Design', value: 34 },
-    { name: 'Media', value: 22 },
-    { name: 'Development', value: 15 },
-    { name: 'Education', value: 9 },
-    { name: 'Admin', value: 4 },
-  ],
 }
 
 interface ScopeSummary {
@@ -125,46 +73,55 @@ interface ScopeSummary {
   kpis: { value: string; label: string }[]
 }
 
-const SUMMARY: Record<Scope, ScopeSummary> = {
-  mine: {
-    headline: 33700,
-    caption: 'Economic value you have personally generated through SkillLoop',
-    kpis: [
-      { value: '18', label: 'Jobs completed' },
-      { value: '15', label: 'People helped' },
-      { value: rupees(9200), label: 'Requester savings' },
-      { value: '42', label: 'Hours of work' },
-    ],
-  },
-  community: {
-    headline: 156500,
-    caption: 'Economic value generated through SkillLoop',
-    kpis: [
-      { value: '47', label: 'Students earned' },
-      { value: '84', label: 'Jobs completed' },
-      { value: rupees(72000), label: 'Requester savings' },
-      { value: '126', label: 'Opportunities discovered' },
-    ],
-  },
-}
-
-const FLOW = [
-  { label: 'Requester Spending', value: 320000, note: 'Paid by clubs, shops and families', gradient: 'linear-gradient(135deg, #4F46E5, #7C3AED)' },
-  { label: 'Student Earnings', value: 156500, note: 'Income reaching 47 students', gradient: 'linear-gradient(135deg, #7C3AED, #0EA5E9)' },
-  { label: 'Community Economic Value', value: 228000, note: 'Re-spent locally in Kandy', gradient: 'linear-gradient(135deg, #0EA5E9, #14B8A6)' },
-]
-
-const RETENTION = [
-  { label: 'External spending (leaves the community)', amount: 500000, pct: 100, color: C.faint },
-  { label: 'SkillLoop-connected spending (stays local)', amount: 320000, pct: 64, color: C.accent },
-]
-
 export default function EconomicImpact({ onNavigate }: PageProps) {
   const [scope, setScope] = useState<Scope>('community')
-  const summary = SUMMARY[scope]
-  const trend = TREND[scope]
-  const skills = SKILLS[scope]
-  const cats = CATS[scope]
+  const impact = useQuery(api.impactMetrics.economicImpact)
+  const mine = impact?.mine
+  const data = scope === 'mine' ? mine : impact?.community
+  const community = impact?.community
+  const personal = mine
+  const mineAvg = (personal?.jobsCompleted ?? 0) > 0 ? Math.round((personal?.income ?? 0) / (personal?.jobsCompleted ?? 1)) : 0
+
+  const summary: ScopeSummary =
+    scope === 'mine'
+      ? {
+          headline: personal?.income ?? 0,
+          caption: 'Economic value you have personally generated through SkillLoop',
+          kpis: [
+            { value: String(personal?.jobsCompleted ?? 0), label: 'Jobs completed' },
+            { value: String(personal?.activeJobs ?? 0), label: 'Active jobs' },
+            { value: String(personal?.earningEvents ?? 0), label: 'Earnings recorded' },
+            { value: rupees(mineAvg), label: 'Average income / job' },
+          ],
+        }
+      : {
+          headline: community?.income ?? 0,
+          caption: 'Economic value generated through SkillLoop',
+          kpis: [
+            { value: String(community?.students ?? 0), label: 'Students earned' },
+            { value: String(community?.jobsCompleted ?? 0), label: 'Jobs completed' },
+            { value: String(community?.opportunities ?? 0), label: 'Opportunities created' },
+            { value: String(community?.businesses ?? 0), label: 'Businesses served' },
+          ],
+        }
+
+  const trend: TrendPoint[] = data?.trend ?? []
+  const skills: SkillRow[] = data?.skills ?? []
+  const cats: CatRow[] = data?.cats ?? []
+
+  // Value-flow + retention figures derive from the community ledger.
+  const requesterSpending = community?.totalJobsValue ?? 0
+  const studentEarnings = community?.income ?? 0
+  const localPct = requesterSpending > 0 ? Math.round((studentEarnings / requesterSpending) * 100) : 0
+  const flow = [
+    { label: 'Requester Spending', value: requesterSpending, note: 'Paid by clubs, shops and families', gradient: 'linear-gradient(135deg, #4F46E5, #7C3AED)' },
+    { label: 'Student Earnings', value: studentEarnings, note: `Income reaching ${community?.students ?? 0} students`, gradient: 'linear-gradient(135deg, #7C3AED, #0EA5E9)' },
+    { label: 'Community Economic Value', value: studentEarnings, note: 'Re-circulated into the local economy', gradient: 'linear-gradient(135deg, #0EA5E9, #14B8A6)' },
+  ]
+  const retention = [
+    { label: 'External spending (leaves the community)', amount: Math.max(requesterSpending - studentEarnings, 0), pct: 100, color: C.faint },
+    { label: 'SkillLoop-connected spending (stays local)', amount: studentEarnings, pct: localPct, color: C.accent },
+  ]
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -374,7 +331,7 @@ export default function EconomicImpact({ onNavigate }: PageProps) {
         {/* ---------------------------------------------------- value flow */}
         <SectionTitle
           title="How value flows"
-          subtitle="One payment creates value three times over inside the community"
+          subtitle="Real money flows between requesters and students, and stays in the community"
         />
         <div
           style={{
@@ -385,7 +342,7 @@ export default function EconomicImpact({ onNavigate }: PageProps) {
             marginBottom: 20,
           }}
         >
-          {FLOW.map((step, i) => (
+          {flow.map((step, i) => (
             <div key={step.label} style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 260px' }}>
               <div
                 className="sl-hover"
@@ -411,7 +368,7 @@ export default function EconomicImpact({ onNavigate }: PageProps) {
                   {step.note}
                 </div>
               </div>
-              {i < FLOW.length - 1 && (
+              {i < flow.length - 1 && (
                 <span style={{ fontSize: 26, color: C.faint, fontWeight: 800, flexShrink: 0 }}>→</span>
               )}
             </div>
@@ -423,9 +380,9 @@ export default function EconomicImpact({ onNavigate }: PageProps) {
             Money retained in the community
           </div>
           <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 18 }}>
-            When requesters hire local students instead of outside providers, 64% of the spend stays in Kandy.
+            When requesters hire local students instead of outside providers, {localPct}% of the spend stays in Kandy.
           </div>
-          {RETENTION.map((r) => (
+          {retention.map((r) => (
             <div key={r.label} style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: C.muted }}>{r.label}</span>
@@ -450,26 +407,25 @@ export default function EconomicImpact({ onNavigate }: PageProps) {
               color: '#0F766E',
             }}
           >
-            {rupees(320000)} retained locally — money that keeps circulating between students, shops and families.
+            {rupees(studentEarnings)} retained locally — money that keeps circulating between students, shops and families.
           </div>
         </Card>
 
         {/* ----------------------------------------------- personal impact */}
-        <SectionTitle title="Your personal impact" subtitle="Kasun Perera · Peradeniya, Kandy" />
+        <SectionTitle title="Your personal impact" subtitle={personal?.name ? `${personal.name} · Personal impact` : 'Personal impact'} />
         <Grid min={200} gap={16} style={{ marginBottom: 30 }}>
-          <InfoTile icon="💰" label="Student income" value={rupees(24500)} tone={C.primary} />
-          <InfoTile icon="🪙" label="Requester money saved" value={rupees(9200)} tone={C.accent} />
-          <InfoTile icon="✅" label="Jobs completed" value="18" tone="#7C3AED" />
-          <InfoTile icon="🤝" label="People helped" value="15" tone={C.warning} />
-          <InfoTile icon="⏱️" label="Hours of work" value="42" tone="#0EA5E9" />
+          <InfoTile icon="💰" label="Student income" value={rupees(personal?.income ?? 0)} tone={C.primary} />
+          <InfoTile icon="✅" label="Jobs completed" value={String(personal?.jobsCompleted ?? 0)} tone="#7C3AED" />
+          <InfoTile icon="💼" label="Active jobs" value={String(personal?.activeJobs ?? 0)} tone={C.warning} />
+          <InfoTile icon="🏢" label="Clients served" value={String(personal?.businesses ?? 0)} tone={C.accent} />
+          <InfoTile icon="📥" label="Earnings recorded" value={String(personal?.earningEvents ?? 0)} tone="#0EA5E9" />
         </Grid>
 
         <AICallout
           title="Every completed opportunity creates value for both sides."
           action={<Btn variant="secondary" onClick={() => onNavigate('opportunities')}>Find work</Btn>}
         >
-          Students in this network earned {rupees(156500)} while requesters saved {rupees(72000)} against outside
-          quotes. Each match keeps talent, trust and money inside the community.
+          Students in this network earned {rupees(community?.income ?? 0)} across {community?.jobsCompleted ?? 0} completed jobs — {community?.students ?? 0} students earning from {community?.businesses ?? 0} local clients. Each match keeps talent, trust and money inside the community.
         </AICallout>
       </Shell>
     </div>
