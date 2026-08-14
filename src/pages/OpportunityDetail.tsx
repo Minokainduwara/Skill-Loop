@@ -34,6 +34,20 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const myApplications = useQuery(api.applications.listMine)
   const applyMutation = useMutation(api.applications.apply)
   
+  const matchesForJob = useQuery(api.matches.listByJob, jobRequestId ? { jobRequestId } : 'skip')
+  const myMatches = useQuery(api.matches.listForStudent, {})
+  const currentMatch = myMatches?.find((match) => match.jobRequestId === jobRequestId)
+  const matchPct = Math.round((currentMatch?.totalScore ?? 0) * 100)
+  const fitLabel = matchPct >= 90 ? 'Excellent fit' : matchPct >= 75 ? 'Strong fit' : 'Potential fit'
+
+  const rank = matchesForJob ? matchesForJob.findIndex(m => m.studentId === currentMatch?.studentId) + 1 : null
+  const totalMatches = matchesForJob?.length ?? 0
+
+  const skillPct = Math.round((currentMatch?.skillScore ?? 0) * 100)
+  const availabilityPct = Math.round((currentMatch?.availabilityScore ?? 0) * 100)
+  const experiencePct = Math.round((currentMatch?.experienceScore ?? 0) * 100)
+  const ratingPct = Math.round((currentMatch?.ratingScore ?? 0) * 100)
+
   // Check if we have already applied
   const application = myApplications?.find(a => a.jobRequestId === jobRequestId)
   const applied = !!application
@@ -153,19 +167,21 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 20 }}>
             <Card style={{ boxShadow: SHADOW.md }}>
               <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 18 }}>
-                <CircleProgress value={96} size={92} label="MATCH" />
+                <CircleProgress value={matchPct} size={92} label="MATCH" />
                 <div>
-                  <div style={{ fontSize: 15.5, fontWeight: 800, color: C.text }}>Excellent fit</div>
+                  <div style={{ fontSize: 15.5, fontWeight: 800, color: C.text }}>{fitLabel}</div>
                   <div style={{ fontSize: 12.5, color: C.muted, marginTop: 4, lineHeight: 1.55 }}>
-                    You rank #1 of 47 nearby students for this request.
+                    {rank && totalMatches > 0
+                      ? `You rank #${rank} of ${totalMatches} students for this request.`
+                      : 'Your match score will appear once the database returns match rows.'}
                   </div>
                 </div>
               </div>
 
-              <MetricBar label="Skill match" value={100} />
-              <MetricBar label="Availability" value={95} color={C.accent} />
-              <MetricBar label="Experience" value={90} color="#7C3AED" />
-              <MetricBar label="Rating" value={90} color={C.warning} />
+              <MetricBar label="Skill match" value={skillPct} />
+              <MetricBar label="Availability" value={availabilityPct} color={C.accent} />
+              <MetricBar label="Experience" value={experiencePct} color="#7C3AED" />
+              <MetricBar label="Rating" value={ratingPct} color={C.warning} />
 
               <div style={{ marginTop: 6 }}>
                 <AICallout title="AI Analysis" compact>

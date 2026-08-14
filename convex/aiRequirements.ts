@@ -96,6 +96,7 @@ export const setFromAnalysis = mutation({
       demandScore: 10,
       source: "job_requests",
       status: "active",
+      jobRequestId: jobRequestId,
       createdAt: Date.now(),
     });
 
