@@ -62,18 +62,59 @@ export const opportunityFeed = query({
 
 /** Single opportunity details with requirements and requester */
 export const opportunityDetail = query({
-  args: { jobRequestId: v.id("jobRequests") },
-  handler: async (ctx, { jobRequestId }) => {
-    const request = await ctx.db.get("jobRequests", jobRequestId);
-    if (!request) return null;
+  args: { 
+    jobRequestId: v.optional(v.id("jobRequests")),
+    opportunityId: v.optional(v.id("opportunities")),
+  },
+  handler: async (ctx, { jobRequestId, opportunityId }) => {
+    let request = null;
+    let opp = null;
+    let requirements = null;
+    let requester = null;
+
+    if (jobRequestId) {
+      request = await ctx.db.get("jobRequests", jobRequestId);
+      opp = await ctx.db.query("opportunities").withIndex("byStatus").filter((q) => q.eq(q.field("jobRequestId"), jobRequestId)).first();
+    } else if (opportunityId) {
+      opp = await ctx.db.get("opportunities", opportunityId);
+      if (opp?.jobRequestId) {
+        request = await ctx.db.get("jobRequests", opp.jobRequestId);
+      }
+    }
+
+    if (request) {
+      [requester, requirements] = await Promise.all([
+        ctx.db.get("users", request.requesterId),
+        ctx.db.query("aiRequirements").withIndex("byJob", (q) => q.eq("jobRequestId", request._id)).first(),
+      ]);
+    }
     
-    const [requester, requirements] = await Promise.all([
-      ctx.db.get("users", request.requesterId),
-      ctx.db.query("aiRequirements").withIndex("byJob", (q) => q.eq("jobRequestId", request._id)).first(),
-    ]);
-    
-    const skills = await Promise.all((requirements?.requiredSkills ?? []).map((id) => ctx.db.get("skills", id)));
-    return { ...request, requester, skills: skills.filter((skill) => skill !== null), requirements };
+    // If no request, use opportunity directly
+    const title = request?.title || opp?.title;
+    const description = request?.description || opp?.description;
+    const budgetMax = request?.budgetMax || opp?.estimatedBudgetMax;
+    const budgetMin = request?.budgetMin || opp?.estimatedBudgetMin;
+    const status = request?.status || opp?.status;
+
+    // Use opportunity skills if requirements missing
+    let skillIds = requirements?.requiredSkills ?? [];
+    if (skillIds.length === 0 && opp?.requiredSkills) {
+      skillIds = opp.requiredSkills;
+    }
+
+    const skills = await Promise.all(skillIds.map((id) => ctx.db.get("skills", id)));
+    return { 
+      _id: request?._id || opp?._id,
+      title,
+      description,
+      budgetMax,
+      budgetMin,
+      status,
+      isRemote: request?.isRemote || false,
+      requester, 
+      skills: skills.filter((skill) => skill !== null), 
+      requirements 
+    };
   },
 });
 

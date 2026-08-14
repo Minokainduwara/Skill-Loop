@@ -98,7 +98,6 @@ export const setFromAnalysis = mutation({
       status: "active",
       jobRequestId: jobRequestId,
       createdAt: Date.now(),
-      jobRequestId: jobRequestId,
     });
 
     return await ctx.db.get("aiRequirements", id);

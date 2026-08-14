@@ -42,8 +42,9 @@ export default function AIMatch({ onNavigate }: PageProps) {
   const [expanded, setExpanded] = useState('c1')
   const [assigned, setAssigned] = useState<string | null>(null)
 
-  const CANDIDATES = useQuery(api.dashboardMock.getBestCandidates, {}) || []
-  const REQUIRED_SKILLS = useQuery(api.dashboardMock.getJobRequirements, {}) || []
+  const CANDIDATES = useQuery(api.dashboard.getBestCandidates, {}) || []
+  const REQUIRED_SKILLS = useQuery(api.dashboard.getJobRequirements, {}) || []
+  const request = useQuery(api.dashboard.getRequestDetails, {})
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh' }}>
@@ -59,7 +60,7 @@ export default function AIMatch({ onNavigate }: PageProps) {
         {/* ----------------------------------------------- request context */}
         <Card style={{ marginBottom: 22, animation: 'sl-rise .5s both' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <Avatar name="University Robotics Society" size={48} emoji="🤖" />
+            <Avatar name={request?.requester ?? "Requester"} size={48} emoji="🤖" />
             <div style={{ flex: 1, minWidth: 240 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: C.faint, letterSpacing: 0.8 }}>THE REQUEST</div>
               <blockquote
@@ -74,10 +75,10 @@ export default function AIMatch({ onNavigate }: PageProps) {
                   letterSpacing: -0.2,
                 }}
               >
-                "Need a promotional poster for our Robotics Exhibition."
+                {request?.title ?? "Loading request…"}
               </blockquote>
               <div style={{ fontSize: 13, color: C.muted, marginTop: 10 }}>
-                University Robotics Society · Peradeniya, Kandy · posted 4 minutes ago
+                {request ? `${request.requester} · ${request.area} · posted ${request.postedLabel}` : ' '}
               </div>
             </div>
           </div>
@@ -110,9 +111,9 @@ export default function AIMatch({ onNavigate }: PageProps) {
               </div>
             </div>
             <Grid min={165} gap={12}>
-              <InfoTile icon="💰" label="Budget" value={rupees(2000)} />
-              <InfoTile icon="⏳" label="Deadline" value="3 days" tone={C.warning} />
-              <InfoTile icon="📍" label="Radius" value="Within 5 km" tone={C.accent} />
+              <InfoTile icon="💰" label="Budget" value={rupees(request?.budget ?? 0)} />
+              <InfoTile icon="⏳" label="Deadline" value={request?.deadlineDays != null ? `${request.deadlineDays} days` : 'Flexible'} tone={C.warning} />
+              <InfoTile icon="📍" label="Radius" value={`Within 5 km · ${request?.area ?? ''}`} tone={C.accent} />
             </Grid>
           </div>
 
@@ -125,8 +126,8 @@ export default function AIMatch({ onNavigate }: PageProps) {
         </Card>
 
         <SectionTitle
-          title="3 strong matches from 47 candidates scanned"
-          subtitle="Ranked by weighted match score · scan completed in 1.8 seconds"
+          title={`${CANDIDATES.length} strong match${CANDIDATES.length === 1 ? '' : 'es'} from ${Math.max(CANDIDATES.length, 1)} candidates scanned`}
+          subtitle="Ranked by weighted match score"
           action={
             <Badge color={C.accent} bg="#CCFBF1" dot>
               Live ranking

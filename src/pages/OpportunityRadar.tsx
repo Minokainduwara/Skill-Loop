@@ -30,8 +30,8 @@ const LEVEL_TONE: Record<Level, { color: string; bg: string; blip: string }> = {
 export default function OpportunityRadar({ onNavigate }: PageProps) {
   const [selected, setSelected] = useState<string>('design')
   
-  const CLUSTERS = useQuery(api.opportunities.getClusters) || []
-  const REQUESTS = useQuery(api.opportunities.getRequests) || []
+  const CLUSTERS = useQuery(api.dashboard.getClusters) || []
+  const REQUESTS = useQuery(api.dashboard.getRequests) || []
 
   const active = CLUSTERS.find((c: any) => c.key === selected) ?? CLUSTERS[0]
 
@@ -99,8 +99,8 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 26 }}>
-              <KPI value="38" label="Requests detected" />
-              <KPI value="6" label="Demand clusters" tone="#5EEAD4" />
+              <KPI value={String(REQUESTS.length)} label="Requests detected" />
+              <KPI value={String(CLUSTERS.length)} label="Demand clusters" tone="#5EEAD4" />
             </div>
           </div>
 
@@ -389,7 +389,7 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
               services. SkillLoop grouped these scattered requests into one claimable cluster.
             </p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
-              {['Canva', 'Illustrator', 'Layout', 'Branding'].map((s) => (
+              {(active?.skills?.slice(0, 4) || []).map((s) => (
                 <SkillChip key={s} label={s} tone="accent" />
               ))}
             </div>
@@ -451,9 +451,10 @@ export default function OpportunityRadar({ onNavigate }: PageProps) {
           </Btn>
         }
       >
-        SkillLoop AI read 38 anonymous requests posted within 5 km, extracted intent and budget
-        signals, then grouped them into 6 demand clusters. Graphic Design is the strongest signal —
-        12 related requests worth {rupees(18500)} with only 8 students able to serve them.
+        SkillLoop AI read {REQUESTS.length} anonymous requests posted within 5 km, extracted intent and budget
+        signals, then grouped them into {CLUSTERS.length} demand clusters. {CLUSTERS[0]?.name || 'The strongest'} is the
+        strongest signal — {CLUSTERS[0]?.requests ?? 0} related requests worth {rupees(CLUSTERS[0]?.value ?? 0)} with only
+        {CLUSTERS[0]?.students ?? 0} students able to serve them.
       </AICallout>
     </Shell>
   )

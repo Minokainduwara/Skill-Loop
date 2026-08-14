@@ -21,14 +21,16 @@ import {
 } from '../components/ui'
 
 export default function DemandCluster({ onNavigate }: PageProps) {
-  const data = useQuery(api.dashboardMock.getClusterDetails, {})
-  const interested = useQuery(api.dashboardMock.getInterestState, {}) || false
-  const expressInterest = useMutation(api.dashboardMock.expressInterest)
+  const data = useQuery(api.dashboard.getClusterDetails, {})
+  const interested = useQuery(api.dashboard.getInterestState, {}) || false
+  const expressInterest = useMutation(api.dashboard.expressInterest)
 
   const REQUESTS = data?.requests || []
   const SKILLS = data?.skills || []
+  const STUDENTS = data?.students ?? 0
 
   const total = REQUESTS.reduce((s: any, r: any) => s + r.budget, 0)
+  const avgTask = REQUESTS.length > 0 ? Math.round(total / REQUESTS.length) : 0
   const chartData = REQUESTS.map((r: any) => ({
     name: r.title.split(' ')[0],
     value: r.budget,
@@ -47,9 +49,9 @@ export default function DemandCluster({ onNavigate }: PageProps) {
       />
 
       <Grid min={200} gap={14} style={{ marginBottom: 26 }}>
-        <InfoTile icon="🙋" label="People looking" value="7 requesters" />
+        <InfoTile icon="🙋" label="People looking" value={`${REQUESTS.length} requesters`} />
         <InfoTile icon="💰" label="Total request value" value={rupees(total)} tone={C.success} />
-        <InfoTile icon="🎓" label="Skilled students" value="14 available" tone={C.accent} />
+        <InfoTile icon="🎓" label="Skilled students" value={`${STUDENTS} available`} tone={C.accent} />
         <InfoTile icon="📍" label="Radius" value="5 km · Peradeniya" tone={C.warning} />
       </Grid>
 
@@ -63,7 +65,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
         {/* ---------------------------------------------- request list */}
         <div style={{ minWidth: 0 }}>
           <SectionTitle
-            title="7 people need design services"
+            title={`${REQUESTS.length} people need design services`}
             subtitle="Every request below can be claimed individually"
           />
           <div style={{ display: 'grid', gap: 12 }}>
@@ -134,7 +136,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
           <Card pad={20} style={{ marginBottom: 20 }}>
             <SectionTitle
               title="Request value distribution"
-              subtitle={`Average task ${rupees(1500)} across 7 requests`}
+              subtitle={`Average task ${rupees(avgTask)} across ${REQUESTS.length} requests`}
             />
             <div style={{ height: 220, minWidth: 0 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -170,10 +172,10 @@ export default function DemandCluster({ onNavigate }: PageProps) {
               </Btn>
             }
           >
-            Seven separate requests posted around Peradeniya and Kandy over the last five days used
-            similar intent language (poster, menu, invitation, layout). SkillLoop AI clustered them
-            into a single Graphic Design demand pocket worth {rupees(12500)} — invisible to any one
-            requester on their own.
+            {REQUESTS.length} separate requests posted around Peradeniya and Kandy shared similar intent
+            language (poster, menu, invitation, layout). SkillLoop AI clustered them into a single{' '}
+            {SKILLS[0] || 'demand'} demand pocket worth {rupees(total)} — invisible to any one requester
+            on their own.
           </AICallout>
         </div>
 
@@ -183,10 +185,10 @@ export default function DemandCluster({ onNavigate }: PageProps) {
             <Card pad={22}>
               <SectionTitle title="Opportunity Potential" />
               <div style={{ display: 'grid', gap: 12 }}>
-                <Row label="Estimated demand" value={rupees(12500)} strong />
-                <Row label="Potential student earnings" value={rupees(10500)} tone={C.success} strong />
-                <Row label="Average task" value={rupees(1500)} />
-                <Row label="Matching students" value="14" />
+                <Row label="Estimated demand" value={rupees(total)} strong />
+                <Row label="Potential student earnings" value={rupees(total)} tone={C.success} strong />
+                <Row label="Average task" value={rupees(avgTask)} />
+                <Row label="Matching students" value={String(STUDENTS)} />
               </div>
 
               <Divider />
@@ -196,7 +198,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                 <div>
                   <div style={{ fontSize: 14.5, fontWeight: 800, color: C.text }}>Your match: 96%</div>
                   <p style={{ margin: '6px 0 0', fontSize: 12.5, color: C.muted, lineHeight: 1.55 }}>
-                    Top-ranked among 14 students on skill fit, trust score and distance.
+                    Top-ranked among {STUDENTS} students on skill fit, trust score and distance.
                   </p>
                 </div>
               </div>
@@ -218,7 +220,7 @@ export default function DemandCluster({ onNavigate }: PageProps) {
                       You are in the running
                     </div>
                     <p style={{ margin: '6px 0 14px', fontSize: 12.5, color: '#15803D', lineHeight: 1.6 }}>
-                      Interest recorded for all 7 requests. Next step: requesters review the AI match
+                      Interest recorded for all {REQUESTS.length} requests. Next step: requesters review the AI match
                       shortlist and you will be notified within 24 hours.
                     </p>
                     <div style={{ display: 'grid', gap: 8 }}>
@@ -249,8 +251,8 @@ export default function DemandCluster({ onNavigate }: PageProps) {
               </div>
               <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
                 <Row label="Demand level" value="🔥 HIGH" />
-                <Row label="Requests in 5 days" value="7" />
-                <Row label="Competition" value="Low · 14 students" />
+                <Row label="Requests in 5 days" value={String(REQUESTS.length)} />
+                <Row label="Competition" value={`Low · ${STUDENTS} students`} />
                 <Row label="Repeat-work chance" value="High" tone={C.success} />
               </div>
             </Card>

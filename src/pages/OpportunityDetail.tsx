@@ -29,21 +29,19 @@ import {
 export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const [saved, setSaved] = useState(false)
   const jobRequestId = data?.jobRequestId as Id<"jobRequests"> | undefined
-  const detail = useQuery(api.frontend.opportunityDetail, jobRequestId ? { jobRequestId } : 'skip')
+  const opportunityId = data?.opportunityId as Id<"opportunities"> | undefined
+  const detail = useQuery(api.frontend.opportunityDetail, (jobRequestId || opportunityId) ? { jobRequestId, opportunityId } : 'skip')
   const matchesForJob = useQuery(api.matches.listByJob, jobRequestId ? { jobRequestId } : 'skip')
   const myMatches = useQuery(api.matches.listForStudent, {})
   const jobRequest = detail ? { _id: detail._id, title: detail.title, budgetMax: detail.budgetMax } : null
   const myApplications = useQuery(api.applications.listMine)
   const applyMutation = useMutation(api.applications.apply)
+  const getOrCreateChannel = useMutation(api.messages.getOrCreateChannel)
+  const user = useQuery(api.users.current)
   
-  const matchesForJob = useQuery(api.matches.listByJob, jobRequestId ? { jobRequestId } : 'skip')
-  const myMatches = useQuery(api.matches.listForStudent, {})
   const currentMatch = myMatches?.find((match) => match.jobRequestId === jobRequestId)
   const matchPct = Math.round((currentMatch?.totalScore ?? 0) * 100)
   const fitLabel = matchPct >= 90 ? 'Excellent fit' : matchPct >= 75 ? 'Strong fit' : 'Potential fit'
-
-  const rank = matchesForJob ? matchesForJob.findIndex(m => m.studentId === currentMatch?.studentId) + 1 : null
-  const totalMatches = matchesForJob?.length ?? 0
 
   const skillPct = Math.round((currentMatch?.skillScore ?? 0) * 100)
   const availabilityPct = Math.round((currentMatch?.availabilityScore ?? 0) * 100)
@@ -54,12 +52,6 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   const application = myApplications?.find(a => a.jobRequestId === jobRequestId)
   const applied = !!application
   const accepted = application?.status === 'accepted'
-  const currentMatch = myMatches?.find((match) => match.jobRequestId === jobRequestId)
-  const matchPct = Math.round((currentMatch?.totalScore ?? 0) * 100)
-  const skillPct = Math.round((currentMatch?.skillScore ?? 0) * 100)
-  const availabilityPct = Math.round((currentMatch?.availabilityScore ?? 0) * 100)
-  const experiencePct = Math.round((currentMatch?.experienceScore ?? 0) * 100)
-  const ratingPct = Math.round((currentMatch?.ratingScore ?? 0) * 100)
   const rank = useMemo(() => {
     if (!matchesForJob || !currentMatch) return null
     const index = matchesForJob.findIndex((match) => match._id === currentMatch._id)
@@ -67,16 +59,32 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
   }, [currentMatch, matchesForJob])
   const totalMatches = matchesForJob?.length ?? 0
   const statusLabel = detail?.status ? detail.status.charAt(0).toUpperCase() + detail.status.slice(1) : 'Open'
-  const fitLabel = matchPct >= 90 ? 'Excellent fit' : matchPct >= 75 ? 'Strong fit' : 'Potential fit'
   const escrowAmount = detail?.budgetMax ?? detail?.budgetMin
 
   const handleApply = async () => {
-    if (!jobRequest) return
+    if (!jobRequest || !jobRequestId) return
     await applyMutation({
-      jobRequestId: jobRequest._id,
+      jobRequestId: jobRequestId,
       proposal: "I would love to work on this project! I have the required skills.",
       proposedPrice: jobRequest.budgetMax ?? 2000,
     })
+    
+    if (user) {
+      const channelId = await getOrCreateChannel({
+        jobRequestId: jobRequestId,
+        studentId: user._id,
+      })
+      onNavigate('messages', { channelId })
+    }
+  }
+
+  const handleMessageRequester = async () => {
+    if (!jobRequest || !user || !jobRequestId) return
+    const channelId = await getOrCreateChannel({
+      jobRequestId: jobRequestId,
+      studentId: user._id,
+    })
+    onNavigate('messages', { channelId })
   }
 
   return (
@@ -85,8 +93,8 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
         <PageHead
           onBack={() => onNavigate('opportunities')}
           backLabel="Back to Opportunities"
-          title={detail ? detail.title : "Loading Opportunity..."}
-          subtitle={`Posted by ${detail?.requester?.username ?? 'Requester'} · ${detail?.location ?? 'Remote'}`}
+          title={detail ? detail.title || "Untitled" : "Loading Opportunity..."}
+          subtitle={`Posted by ${detail?.requester?.username ?? 'Requester'} · ${detail?.isRemote ? 'Remote' : 'Local'}`}
         />
 
         <div
@@ -116,8 +124,8 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
 
               <Grid min={170} gap={12}>
                 <InfoTile icon="💰" label="Budget" value={rupees(detail?.budgetMax ?? detail?.budgetMin ?? 0)} />
-                <InfoTile icon="🗓️" label="Deadline" value={detail?.deadline ? new Date(detail.deadline).toLocaleDateString() : 'Flexible'} tone={C.warning} />
-                <InfoTile icon="📍" label="Location" value={detail?.location ?? 'Remote'} tone={C.accent} />
+                <InfoTile icon="🗓️" label="Deadline" value="Flexible" tone={C.warning} />
+                <InfoTile icon="📍" label="Location" value={detail?.isRemote ? 'Remote' : 'Local'} tone={C.accent} />
               </Grid>
 
               <Divider />
@@ -250,11 +258,11 @@ export default function OpportunityDetail({ onNavigate, data }: PageProps) {
                 </div>
               ) : (
                 <>
-                  <Btn full size="lg" onClick={handleApply} disabled={!detail}>
+                  <Btn full size="lg" onClick={handleApply} disabled={!detail || !jobRequestId}>
                     Apply for Opportunity
                   </Btn>
                   <div style={{ height: 10 }} />
-                  <Btn full variant="secondary" onClick={() => onNavigate('messages')}>
+                  <Btn full variant="secondary" onClick={handleMessageRequester} disabled={!detail || !user || !jobRequestId}>
                     Message Requester
                   </Btn>
                   <div style={{ height: 10 }} />
